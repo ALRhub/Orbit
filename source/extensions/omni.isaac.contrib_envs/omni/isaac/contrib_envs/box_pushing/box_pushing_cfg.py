@@ -105,7 +105,7 @@ class RandomizationCfg:
     object_initial_pose: ObjectInitialPoseCfg = ObjectInitialPoseCfg()
     object_desired_pose: ObjectDesiredPoseCfg = ObjectDesiredPoseCfg()
 
-#TODO enable observations for the reward function (understand how it works)
+#TODO why is arm_dof_vel scaled to 0.5?
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
@@ -120,21 +120,22 @@ class ObservationsCfg:
         # -- joint state
         arm_dof_pos = {"scale": 1.0}
         # arm_dof_pos_scaled = {"scale": 1.0}
-        # arm_dof_vel = {"scale": 0.5, "noise": {"name": "uniform", "min": -0.01, "max": 0.01}}
-        tool_dof_pos_scaled = {"scale": 1.0}
+        arm_dof_vel = {"scale": 0.5, "noise": {"name": "uniform", "min": -0.01, "max": 0.01}}
+        # tool_dof_pos_scaled = {"scale": 1.0}
         # -- end effector state
         tool_positions = {"scale": 1.0}
         tool_orientations = {"scale": 1.0}
         # -- object state
-        # object_positions = {"scale": 1.0}
-        # object_orientations = {"scale": 1.0}
-        object_relative_tool_positions = {"scale": 1.0}
+        object_positions = {"scale": 1.0}
+        object_orientations = {"scale": 1.0}
+        # object_relative_tool_positions = {"scale": 1.0}
         # object_relative_tool_orientations = {"scale": 1.0}
         # -- object desired state
         object_desired_positions = {"scale": 1.0}
+        object_desired_orientations = {"scale": 1.0}
         # -- previous action
         arm_actions = {"scale": 1.0}
-        tool_actions = {"scale": 1.0}
+        # tool_actions = {"scale": 1.0}
 
     # global observation settings
     return_dict_obs_in_group = False

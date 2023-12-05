@@ -471,7 +471,7 @@ class BoxPushingRewardManager(RewardManager):
             box_goal_pos_dist_reward + box_goal_rot_dist_reward + energy_cost
         
         rod_inclined_angle = self._rotation_distance(obs_manager.tool_orientations(env), tool_desired_orientation)
-        reward = torch.where(rod_inclined_angle > torch.div(torch_pi, 4), rod_inclined_angle / (torch_pi), reward)
+        reward = torch.where(rod_inclined_angle > torch.div(torch_pi, 4), reward - rod_inclined_angle / (torch_pi), reward)
         return reward
     
     def box_pushing_temporal_sparse(self, env: BoxPushingEnv):
@@ -486,7 +486,7 @@ class BoxPushingRewardManager(RewardManager):
         p_coeff = 1.
         v_coeff = 1.
 
-        #Franka joint limits (from mujoco) TODO test if joint limits the same in IsaacSim
+        #TODO test if joint limits the same in IsaacSim
         arm_dof_pos_max = torch.tensor([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973],device=env.device)
         arm_dof_pos_min = torch.tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973], device=env.device)
         arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=env.device)
