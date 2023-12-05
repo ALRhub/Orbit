@@ -459,21 +459,21 @@ class BoxPushingRewardManager(RewardManager):
         torch_pi = torch.tensor(math.pi, device=env.device)
 
         tcp_box_dist_reward = -2 * torch.clamp(
-            torch.linalg.vector_norm(torch.sub(box_pos, obs_manager.tool_positions(env))),
+            torch.linalg.vector_norm(torch.sub(box_pos, obs_manager.tool_positions(env)), dim=1),
             min=0.05,
             max=100)
         box_goal_pos_dist_reward = -3.5 * torch.linalg.vector_norm(
-            torch.sub(box_pos, obs_manager.object_desired_positions(env)))
+            torch.sub(box_pos, obs_manager.object_desired_positions(env)), dim=1)
+
         box_goal_rot_dist_reward = -self._rotation_distance(obs_manager.object_orientations(env),
                                                              obs_manager.object_desired_orientations(env)) / torch_pi
-        energy_cost = -0.0005 * torch.sum(torch.square(obs_manager.arm_actions(env)))
+        energy_cost = -0.0005 * torch.sum(torch.square(obs_manager.arm_actions(env)), dim=1)
 
         reward = joint_penalty + tcp_box_dist_reward + \
             box_goal_pos_dist_reward + box_goal_rot_dist_reward + energy_cost
-
+        
         rod_inclined_angle = self._rotation_distance(obs_manager.tool_orientations(env), tool_desired_orientation)
-        if rod_inclined_angle > torch.div(torch_pi, 4):
-            reward -= rod_inclined_angle / (torch_pi)
+        reward = torch.where(rod_inclined_angle > torch.div(torch_pi, 4), rod_inclined_angle / (torch_pi), reward)
         return reward
     
     def box_pushing_temporal_sparse(self, env: BoxPushingEnv):
@@ -511,5 +511,4 @@ class BoxPushingRewardManager(RewardManager):
     theta: rotation angle between p and q (rad)
     """
     def _rotation_distance(self, p: torch.Tensor, q: torch.Tensor):
-        assert p.shape == q.shape, "p and q should be quaternion"
-        return 2 * torch.acos(torch.abs(torch.dot(p.reshape(-1), q.reshape(-1))))
+        return 2 * torch.acos(torch.abs(torch.sum(p * q, dim=1)))
