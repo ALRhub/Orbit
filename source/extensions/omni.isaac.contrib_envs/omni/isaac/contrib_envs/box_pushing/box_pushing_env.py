@@ -16,7 +16,7 @@ from omni.isaac.orbit.markers import StaticMarker
 from omni.isaac.orbit.objects import RigidObject
 from omni.isaac.orbit.robots.single_arm import SingleArmManipulator
 from omni.isaac.orbit.utils.dict import class_to_dict
-from omni.isaac.orbit.utils.math import quat_inv, quat_mul, random_orientation, sample_uniform, scale_transform
+from omni.isaac.orbit.utils.math import quat_inv, quat_mul, random_orientation, random_yaw_orientation, sample_uniform, scale_transform
 from omni.isaac.orbit.utils.mdp import ObservationManager, RewardManager
 
 from omni.isaac.orbit_envs.isaac_env import IsaacEnv, VecEnvIndices, VecEnvObs
@@ -348,7 +348,7 @@ class BoxPushingEnv(IsaacEnv):
             # constant position of the object
             self.object_des_pose_w[env_ids, 3:7] = cfg.orientation_default
         elif cfg.orientation_cat == "uniform":
-            self.object_des_pose_w[env_ids, 3:7] = random_orientation(len(env_ids), self.device)
+            self.object_des_pose_w[env_ids, 3:7] = random_yaw_orientation(len(env_ids), self.device)
         else:
             raise ValueError(
                 f"Invalid category for randomizing the desired object orientation '{cfg.orientation_cat}'."
