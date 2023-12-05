@@ -394,6 +394,10 @@ class LiftObservationManager(ObservationManager):
         quat_w = env.robot.data.ee_state_w[:, 3:7]
         quat_w[quat_w[:, 0] < 0] *= -1
         return quat_w
+    
+    #TODO test
+    def tool_velocity(self, env: BoxPushingEnv):
+        return env.robot.data.ee_state_w[:, 8:11]
 
     def object_positions(self, env: BoxPushingEnv):
         """Current object position."""
