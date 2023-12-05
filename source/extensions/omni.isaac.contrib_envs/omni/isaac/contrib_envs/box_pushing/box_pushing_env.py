@@ -443,7 +443,7 @@ class LiftObservationManager(ObservationManager):
 
 
 class BoxPushingRewardManager(RewardManager):
-    """Reward manager for single-arm object lifting environment."""
+    """Reward manager for single-arm object pushing environment."""
 
     def box_pushing_dense(self, env: BoxPushingEnv):
 
@@ -455,9 +455,8 @@ class BoxPushingRewardManager(RewardManager):
         box_pos = obs_manager.object_positions(env)
 
         #TODO put in obervation manager
-        cuda0 = torch.device('cuda:0')
-        tool_desired_orientation = torch.tensor([[0.0, 1.0, 0.0, 0.0]], device=cuda0)
-        torch_pi = torch.tensor(math.pi, device=cuda0)
+        tool_desired_orientation = torch.tensor([[0.0, 1.0, 0.0, 0.0]], device=env.device)
+        torch_pi = torch.tensor(math.pi, device=env.device)
 
         tcp_box_dist_reward = -2 * torch.clamp(
             torch.linalg.vector_norm(torch.sub(box_pos, obs_manager.tool_positions(env))),
@@ -490,10 +489,9 @@ class BoxPushingRewardManager(RewardManager):
         v_coeff = 1.
 
         #Franka joint limits (from mujoco) TODO test if joint limits the same in IsaacSim
-        cuda0 = torch.device('cuda:0')
-        arm_dof_pos_max = torch.tensor([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973], device=cuda0)
-        arm_dof_pos_min = torch.tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973], device=cuda0)
-        arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=cuda0)
+        arm_dof_pos_max = torch.tensor([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973],device=env.device)
+        arm_dof_pos_min = torch.tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973], device=env.device)
+        arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=env.device)
         # q_limit
         if enable_pos_limit:
             higher_error = torch.sub(arm_dof_pos, arm_dof_pos_max)
