@@ -394,10 +394,6 @@ class LiftObservationManager(ObservationManager):
         quat_w = env.robot.data.ee_state_w[:, 3:7]
         quat_w[quat_w[:, 0] < 0] *= -1
         return quat_w
-    
-    #TODO test
-    def tool_velocity(self, env: BoxPushingEnv):
-        return env.robot.data.ee_state_w[:, 8:11]
 
     def object_positions(self, env: BoxPushingEnv):
         """Current object position."""
@@ -450,22 +446,35 @@ class BoxPushingRewardManager(RewardManager):
     """Reward manager for single-arm object lifting environment."""
 
     def box_pushing_dense(self, env: BoxPushingEnv):
-        joint_penalty = self._joint_limit_violate_penalty(qpos,
-                                                          qvel,
+
+        obs_manager = env._observation_manager
+        joint_penalty = self._joint_limit_violate_penalty(env, arm_dof_pos=obs_manager.arm_dof_pos(env),
+                                                          arm_dof_vel=obs_manager.arm_dof_vel(env),
                                                           enable_pos_limit=True,
                                                           enable_vel_limit=True)
-        tcp_box_dist_reward = -2 * np.clip(np.linalg.norm(box_pos - rod_tip_pos), 0.05, 100)
-        box_goal_pos_dist_reward = -3.5 * np.linalg.norm(box_pos - target_pos)
-        box_goal_rot_dist_reward = -rotation_distance(box_quat, target_quat) / np.pi
-        energy_cost = -0.0005 * np.sum(np.square(action))
+        box_pos = obs_manager.object_positions(env)
+
+        #TODO put in obervation manager
+        cuda0 = torch.device('cuda:0')
+        tool_desired_orientation = torch.tensor([[0.0, 1.0, 0.0, 0.0]], device=cuda0)
+        torch_pi = torch.tensor(math.pi, device=cuda0)
+
+        tcp_box_dist_reward = -2 * torch.clamp(
+            torch.linalg.vector_norm(torch.sub(box_pos, obs_manager.tool_positions(env))),
+            min=0.05,
+            max=100)
+        box_goal_pos_dist_reward = -3.5 * torch.linalg.vector_norm(
+            torch.sub(box_pos, obs_manager.object_desired_positions(env)))
+        box_goal_rot_dist_reward = -self._rotation_distance(obs_manager.object_orientations(env),
+                                                             obs_manager.object_desired_orientations(env)) / torch_pi
+        energy_cost = -0.0005 * torch.sum(torch.square(obs_manager.arm_actions(env)))
 
         reward = joint_penalty + tcp_box_dist_reward + \
             box_goal_pos_dist_reward + box_goal_rot_dist_reward + energy_cost
 
-        rod_inclined_angle = rotation_distance(rod_quat, self._desired_rod_quat)
-        if rod_inclined_angle > np.pi / 4:
-            reward -= rod_inclined_angle / (np.pi)
-
+        rod_inclined_angle = self._rotation_distance(obs_manager.tool_orientations(env), tool_desired_orientation)
+        if rod_inclined_angle > torch.div(torch_pi, 4):
+            reward -= rod_inclined_angle / (torch_pi)
         return reward
     
     def box_pushing_temporal_sparse(self, env: BoxPushingEnv):
@@ -474,18 +483,35 @@ class BoxPushingRewardManager(RewardManager):
     def box_pushing_temporal_statial_sparse(self, env: BoxPushingEnv):
         raise NotImplementedError
 
-    def _joint_limit_violate_penalty(self, qpos, qvel, enable_pos_limit=False, enable_vel_limit=False):
+    def _joint_limit_violate_penalty(self, env: BoxPushingEnv, arm_dof_pos: torch.Tensor, arm_dof_vel: torch.Tensor,
+                                      enable_pos_limit=False, enable_vel_limit=False):
         penalty = 0.
         p_coeff = 1.
         v_coeff = 1.
+
+        #Franka joint limits (from mujoco) TODO test if joint limits the same in IsaacSim
+        cuda0 = torch.device('cuda:0')
+        arm_dof_pos_max = torch.tensor([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973], device=cuda0)
+        arm_dof_pos_min = torch.tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973], device=cuda0)
+        arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=cuda0)
         # q_limit
         if enable_pos_limit:
-            higher_error = qpos - self._q_max
-            lower_error = self._q_min - qpos
-            penalty -= p_coeff * (abs(np.sum(higher_error[qpos > self._q_max])) +
-                                  abs(np.sum(lower_error[qpos < self._q_min])))
+            higher_error = torch.sub(arm_dof_pos, arm_dof_pos_max)
+            lower_error = torch.sub(arm_dof_pos_min, arm_dof_pos)
+            penalty -= p_coeff * (abs(torch.sum(higher_error[arm_dof_pos > arm_dof_pos_max])) +
+                                  abs(torch.sum(lower_error[arm_dof_pos < arm_dof_pos_min])))
         # q_dot_limit
         if enable_vel_limit:
-            q_dot_error = abs(qvel) - abs(self._q_dot_max)
-            penalty -= v_coeff * abs(np.sum(q_dot_error[q_dot_error > 0.]))
+            arm_dof_vel_error = torch.abs(arm_dof_vel) - torch.abs(arm_dof_vel_max)
+            penalty -= v_coeff * abs(torch.sum(arm_dof_vel_error[arm_dof_vel_error > 0.]))
         return penalty
+
+    """
+    Calculates the rotation angular between two quaternions
+    param p: quaternion
+    param q: quaternion
+    theta: rotation angle between p and q (rad)
+    """
+    def _rotation_distance(self, p: torch.Tensor, q: torch.Tensor):
+        assert p.shape == q.shape, "p and q should be quaternion"
+        return 2 * torch.acos(torch.abs(torch.dot(p.reshape(-1), q.reshape(-1))))

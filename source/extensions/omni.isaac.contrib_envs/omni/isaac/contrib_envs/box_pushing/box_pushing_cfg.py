@@ -149,11 +149,11 @@ class ObservationsCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    box_pushing_dense = {"weight": 1}
+    box_pushing_dense = {"weight": 1.}
     
     # Deactivated (weight = 0)
-    box_pushing_temporal_sparse = {"weight": 0}
-    box_pushing_temporal_spatial_sparse = {"weight": 0}
+    box_pushing_temporal_sparse = {"weight": 0.}
+    box_pushing_temporal_spatial_sparse = {"weight": 0.}
 
 #TODO implemebt termination checks
 @configclass
