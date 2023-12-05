@@ -446,10 +446,42 @@ class BoxPushingRewardManager(RewardManager):
     """Reward manager for single-arm object lifting environment."""
 
     def box_pushing_dense(self, env: BoxPushingEnv):
-        raise NotImplementedError
+        joint_penalty = self._joint_limit_violate_penalty(qpos,
+                                                          qvel,
+                                                          enable_pos_limit=True,
+                                                          enable_vel_limit=True)
+        tcp_box_dist_reward = -2 * np.clip(np.linalg.norm(box_pos - rod_tip_pos), 0.05, 100)
+        box_goal_pos_dist_reward = -3.5 * np.linalg.norm(box_pos - target_pos)
+        box_goal_rot_dist_reward = -rotation_distance(box_quat, target_quat) / np.pi
+        energy_cost = -0.0005 * np.sum(np.square(action))
+
+        reward = joint_penalty + tcp_box_dist_reward + \
+            box_goal_pos_dist_reward + box_goal_rot_dist_reward + energy_cost
+
+        rod_inclined_angle = rotation_distance(rod_quat, self._desired_rod_quat)
+        if rod_inclined_angle > np.pi / 4:
+            reward -= rod_inclined_angle / (np.pi)
+
+        return reward
     
     def box_pushing_temporal_sparse(self, env: BoxPushingEnv):
         raise NotImplementedError
 
     def box_pushing_temporal_statial_sparse(self, env: BoxPushingEnv):
         raise NotImplementedError
+
+    def _joint_limit_violate_penalty(self, qpos, qvel, enable_pos_limit=False, enable_vel_limit=False):
+        penalty = 0.
+        p_coeff = 1.
+        v_coeff = 1.
+        # q_limit
+        if enable_pos_limit:
+            higher_error = qpos - self._q_max
+            lower_error = self._q_min - qpos
+            penalty -= p_coeff * (abs(np.sum(higher_error[qpos > self._q_max])) +
+                                  abs(np.sum(lower_error[qpos < self._q_min])))
+        # q_dot_limit
+        if enable_vel_limit:
+            q_dot_error = abs(qvel) - abs(self._q_dot_max)
+            penalty -= v_coeff * abs(np.sum(q_dot_error[q_dot_error > 0.]))
+        return penalty
