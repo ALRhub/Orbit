@@ -27,7 +27,6 @@ from .box_pushing_cfg import BoxPushingEnvCfg, RandomizationCfg
 class BoxPushingEnv(IsaacEnv):
     """Environment for lifting an object off a table with a single-arm manipulator."""
 
-    #TODO implement
     def __init__(self, cfg: BoxPushingEnvCfg = None, **kwargs):
         # copy configuration
         self.cfg = cfg
@@ -72,7 +71,7 @@ class BoxPushingEnv(IsaacEnv):
     """
     Implementation specifics.
     """
-    #TODO implement
+    #TODO Adapt scene to mujoco?
     def _design_scene(self) -> List[str]:
         # ground plane
         kit_utils.create_ground_plane("/World/defaultGroundPlane", z_position=-1.05)
@@ -110,10 +109,10 @@ class BoxPushingEnv(IsaacEnv):
         # return list of global prims
         return ["/World/defaultGroundPlane"]
     
-    #TODO implement
     def _reset_idx(self, env_ids: VecEnvIndices):
         # randomize the MDP
         # -- robot DOF state
+        #TODO set default robot position with the rod in the box (like in the mujoco env)
         dof_pos, dof_vel = self.robot.get_default_dof_state(env_ids=env_ids)
         self.robot.set_dof_state(dof_pos, dof_vel, env_ids=env_ids)
         # -- object pose
@@ -138,7 +137,6 @@ class BoxPushingEnv(IsaacEnv):
         if self.cfg.control.control_type == "inverse_kinematics":
             self._ik_controller.reset_idx(env_ids)
 
-    #TODO implement
     def _step_impl(self, actions: torch.Tensor):
         # pre-step: set actions into buffer
         self.actions = actions.clone().to(device=self.device)
@@ -191,7 +189,6 @@ class BoxPushingEnv(IsaacEnv):
         if self.cfg.viewer.debug_vis and self.enable_render:
             self._debug_vis()
 
-    #TODO implement
     def _get_observations(self) -> VecEnvObs:
         # compute observations
         return self._observation_manager.compute()
@@ -290,6 +287,7 @@ class BoxPushingEnv(IsaacEnv):
         # compute resets
         # -- when task is successful
         if self.cfg.terminations.is_success:
+            #TODO Only based on position and not orientation?
             object_position_error = torch.norm(self.object.data.root_pos_w - self.object_des_pose_w[:, 0:3], dim=1)
             self.reset_buf = torch.where(object_position_error < 0.02, 1, self.reset_buf)
         # -- object fell off the table (table at height: 0.0 m)
@@ -454,7 +452,7 @@ class BoxPushingRewardManager(RewardManager):
                                                           enable_vel_limit=True)
         box_pos = obs_manager.object_positions(env)
 
-        #TODO put in obervation manager
+        #TODO put in obervation manager?
         tool_desired_orientation = torch.tensor([[0.0, 1.0, 0.0, 0.0]], device=env.device)
         torch_pi = torch.tensor(math.pi, device=env.device)
 

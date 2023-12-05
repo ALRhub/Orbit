@@ -16,7 +16,7 @@ from omni.isaac.orbit_envs.isaac_env_cfg import EnvCfg, IsaacEnvCfg, PhysxCfg, S
 # Scene settings
 ##
 
-#TODO adapt
+#TODO Change scene to resemble mujoco scene
 @configclass
 class TableCfg:
     """Properties for the table."""
@@ -24,7 +24,7 @@ class TableCfg:
     # note: we use instanceable asset since it consumes less memory
     usd_path = f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"
 
-#TODO adapt
+#TODO Change scene to resemble mujoco scene
 @configclass
 class ManipulationObjectCfg(RigidObjectCfg):
     """Properties for the object to manipulate in the scene."""
@@ -48,7 +48,6 @@ class ManipulationObjectCfg(RigidObjectCfg):
         static_friction=0.5, dynamic_friction=0.5, restitution=0.0, prim_path="/World/Materials/cubeMaterial"
     )
 
-#TODO adapt
 @configclass
 class GoalMarkerCfg:
     """Properties for visualization marker."""
@@ -58,7 +57,6 @@ class GoalMarkerCfg:
     # scale of the asset at import
     scale = [0.05, 0.05, 0.05]  # x,y,z
 
-#TODO adapt
 @configclass
 class FrameMarkerCfg:
     """Properties for visualization marker."""
@@ -73,7 +71,7 @@ class FrameMarkerCfg:
 # MDP settings
 ##
 
-#TODO adapt
+#TODO visualise limits and adapt them (after recreating the mujoco scene)
 @configclass
 class RandomizationCfg:
     """Randomization of scene at reset."""
@@ -107,7 +105,7 @@ class RandomizationCfg:
     object_initial_pose: ObjectInitialPoseCfg = ObjectInitialPoseCfg()
     object_desired_pose: ObjectDesiredPoseCfg = ObjectDesiredPoseCfg()
 
-#TODO adapt
+#TODO enable observations for the reward function (understand how it works)
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
@@ -144,7 +142,6 @@ class ObservationsCfg:
     # observation groups
     policy: PolicyCfg = PolicyCfg()
 
-#TODO set params
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
@@ -155,7 +152,6 @@ class RewardsCfg:
     box_pushing_temporal_sparse = {"weight": 0.}
     box_pushing_temporal_spatial_sparse = {"weight": 0.}
 
-#TODO implemebt termination checks
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
@@ -164,13 +160,12 @@ class TerminationsCfg:
     object_falling = True  # reset when object falls off the table
     is_success = False  # reset when object is lifted
 
-#TODO Adapt?
 @configclass
 class ControlCfg:
     """Processing of MDP actions."""
 
     # action space
-    control_type = "default"  # "default", "inverse_kinematics"
+    control_type = "inverse_kinematics"  # "default", "inverse_kinematics"
     # decimation: Number of control action updates @ sim dt per policy dt
     decimation = 2
 
@@ -187,7 +182,7 @@ class ControlCfg:
 # Environment configuration
 ##
 
-#TODO adapt
+#TODO change parameters like episode length
 @configclass
 class BoxPushingEnvCfg(IsaacEnvCfg):
     """Configuration for the Lift environment."""
