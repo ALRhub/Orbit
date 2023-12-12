@@ -342,11 +342,11 @@ class BoxPushingEnv(IsaacEnv):
         else:
             raise ValueError(f"Invalid category for randomizing the desired object positions '{cfg.position_cat}'.")
         # -- desired object root orientation
-        if cfg.orientation_cat == "default":
+        if cfg.orientation_cat == "default" or cfg.orientation_cat == "uniform":
             # constant position of the object
             self.object_des_pose_w[env_ids, 3:7] = cfg.orientation_default
-        elif cfg.orientation_cat == "uniform":
-            self.object_des_pose_w[env_ids, 3:7] = random_yaw_orientation(len(env_ids), self.device)
+        # elif cfg.orientation_cat == "uniform":
+            # self.object_des_pose_w[env_ids, 3:7] = random_yaw_orientation(len(env_ids), self.device)
         else:
             raise ValueError(
                 f"Invalid category for randomizing the desired object orientation '{cfg.orientation_cat}'."
