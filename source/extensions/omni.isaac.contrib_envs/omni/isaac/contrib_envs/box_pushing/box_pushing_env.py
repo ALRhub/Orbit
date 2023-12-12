@@ -112,7 +112,6 @@ class BoxPushingEnv(IsaacEnv):
     def _reset_idx(self, env_ids: VecEnvIndices):
         # randomize the MDP
         # -- robot DOF state
-        #TODO set default robot position with the rod in the box (like in the mujoco env)
         dof_pos, dof_vel = self.robot.get_default_dof_state(env_ids=env_ids)
         self.robot.set_dof_state(dof_pos, dof_vel, env_ids=env_ids)
         # -- object pose
@@ -163,7 +162,9 @@ class BoxPushingEnv(IsaacEnv):
             # set actions into buffers
             self.robot.apply_action(self.robot_actions)
             # simulate
-            self.sim.step(render=self.enable_render)
+            # self.sim.step(render=self.enable_render)
+            # Setting render to True so that we can visualize using the omniverse streaming client
+            self.sim.step(render=True)
             # check that simulation is playing
             if self.sim.is_stopped():
                 return
@@ -287,7 +288,6 @@ class BoxPushingEnv(IsaacEnv):
         # compute resets
         # -- when task is successful
         if self.cfg.terminations.is_success:
-            #TODO Only based on position and not orientation?
             object_position_error = torch.norm(self.object.data.root_pos_w - self.object_des_pose_w[:, 0:3], dim=1)
             self.reset_buf = torch.where(object_position_error < 0.02, 1, self.reset_buf)
         # -- object fell off the table (table at height: 0.0 m)
@@ -452,8 +452,6 @@ class BoxPushingRewardManager(RewardManager):
                                                           enable_vel_limit=True)
         box_pos = obs_manager.object_positions(env)
 
-        #TODO put in obervation manager?
-        tool_desired_orientation = torch.tensor([[0.0, 1.0, 0.0, 0.0]], device=env.device)
         torch_pi = torch.tensor(math.pi, device=env.device)
 
         tcp_box_dist_reward = -2 * torch.clamp(
@@ -463,15 +461,11 @@ class BoxPushingRewardManager(RewardManager):
         box_goal_pos_dist_reward = -3.5 * torch.linalg.vector_norm(
             torch.sub(box_pos, obs_manager.object_desired_positions(env)), dim=1)
 
-        box_goal_rot_dist_reward = -self._rotation_distance(obs_manager.object_orientations(env),
-                                                             obs_manager.object_desired_orientations(env)) / torch_pi
         energy_cost = -0.0005 * torch.sum(torch.square(obs_manager.arm_actions(env)), dim=1)
 
         reward = joint_penalty + tcp_box_dist_reward + \
-            box_goal_pos_dist_reward + box_goal_rot_dist_reward + energy_cost
+            box_goal_pos_dist_reward + energy_cost
         
-        rod_inclined_angle = self._rotation_distance(obs_manager.tool_orientations(env), tool_desired_orientation)
-        reward = torch.where(rod_inclined_angle > torch.div(torch_pi, 4), reward - rod_inclined_angle / (torch_pi), reward)
         return reward
     
     def box_pushing_temporal_sparse(self, env: BoxPushingEnv):
@@ -486,7 +480,6 @@ class BoxPushingRewardManager(RewardManager):
         p_coeff = 1.
         v_coeff = 1.
 
-        #TODO test if joint limits the same in IsaacSim
         arm_dof_pos_max = torch.tensor([2.8973, 1.7628, 2.8973, -0.0698, 2.8973, 3.7525, 2.8973],device=env.device)
         arm_dof_pos_min = torch.tensor([-2.8973, -1.7628, -2.8973, -3.0718, -2.8973, -0.0175, -2.8973], device=env.device)
         arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=env.device)

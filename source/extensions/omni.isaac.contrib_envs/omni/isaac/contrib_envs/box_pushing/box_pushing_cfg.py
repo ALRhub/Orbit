@@ -105,7 +105,6 @@ class RandomizationCfg:
     object_initial_pose: ObjectInitialPoseCfg = ObjectInitialPoseCfg()
     object_desired_pose: ObjectDesiredPoseCfg = ObjectDesiredPoseCfg()
 
-#TODO why is arm_dof_vel scaled to 0.5?
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
@@ -120,7 +119,7 @@ class ObservationsCfg:
         # -- joint state
         arm_dof_pos = {"scale": 1.0}
         # arm_dof_pos_scaled = {"scale": 1.0}
-        arm_dof_vel = {"scale": 0.5, "noise": {"name": "uniform", "min": -0.01, "max": 0.01}}
+        arm_dof_vel = {"scale": 1.0, "noise": {"name": "uniform", "min": -0.01, "max": 0.01}}
         # tool_dof_pos_scaled = {"scale": 1.0}
         # -- end effector state
         tool_positions = {"scale": 1.0}
@@ -147,11 +146,11 @@ class ObservationsCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    box_pushing_dense = {"weight": 1.}
+    box_pushing_dense = {"weight": 1.0}
     
     # Deactivated (weight = 0)
-    box_pushing_temporal_sparse = {"weight": 0.}
-    box_pushing_temporal_spatial_sparse = {"weight": 0.}
+    box_pushing_temporal_sparse = {"weight": 0.0}
+    box_pushing_temporal_spatial_sparse = {"weight": 0.0}
 
 @configclass
 class TerminationsCfg:
