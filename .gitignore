@@ -8,10 +8,10 @@
 **/.thumbs
 
 # No USD files allowed in the repo
-**/*.usd
-**/*.usda
-**/*.usdc
-**/*.usdz
+# **/*.usd
+# **/*.usda
+# **/*.usdc
+# **/*.usdz
 
 # Python
 .DS_Store
@@ -47,3 +47,9 @@ source/extensions/omni.isaac.orbit_assets
 # RL-Games
 **/runs/*
 **/logs/*
+
+# Streaming logs
+NvStreamer-LinuxEventTrace*
+
+#wandb
+wandb
