@@ -32,7 +32,7 @@ class ManipulationObjectCfg(RigidObjectCfg):
     """Properties for the object to manipulate in the scene."""
 
     meta_info = RigidObjectCfg.MetaInfoCfg(
-        usd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets/box_cad.usd"),
+        usd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets/box.usd"),
         scale=(0.01, 0.01, 0.01),
     )
     init_state = RigidObjectCfg.InitialStateCfg(
