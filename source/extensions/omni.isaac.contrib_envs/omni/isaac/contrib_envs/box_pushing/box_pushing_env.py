@@ -494,12 +494,3 @@ class BoxPushingRewardManager(RewardManager):
             arm_dof_vel_error = torch.abs(arm_dof_vel) - torch.abs(arm_dof_vel_max)
             penalty -= v_coeff * abs(torch.sum(arm_dof_vel_error[arm_dof_vel_error > 0.]))
         return penalty
-
-    """
-    Calculates the rotation angular between two quaternions
-    param p: quaternion
-    param q: quaternion
-    theta: rotation angle between p and q (rad)
-    """
-    def _rotation_distance(self, p: torch.Tensor, q: torch.Tensor):
-        return 2 * torch.acos(torch.abs(torch.sum(p * q, dim=1)))

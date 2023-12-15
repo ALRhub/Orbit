@@ -12,6 +12,8 @@ from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 
 from omni.isaac.orbit_envs.isaac_env_cfg import EnvCfg, IsaacEnvCfg, PhysxCfg, SimCfg, ViewerCfg
 
+import os
+
 ##
 # Scene settings
 ##
@@ -30,8 +32,8 @@ class ManipulationObjectCfg(RigidObjectCfg):
     """Properties for the object to manipulate in the scene."""
 
     meta_info = RigidObjectCfg.MetaInfoCfg(
-        usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/DexCube/dex_cube_instanceable.usd",
-        scale=(0.8, 0.8, 0.8),
+        usd_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "assets/box_cad.usd"),
+        scale=(0.01, 0.01, 0.01),
     )
     init_state = RigidObjectCfg.InitialStateCfg(
         pos=(0.4, 0.0, 0.075), rot=(1.0, 0.0, 0.0, 0.0), lin_vel=(0.0, 0.0, 0.0), ang_vel=(0.0, 0.0, 0.0)
@@ -96,8 +98,8 @@ class RandomizationCfg:
         orientation_cat: str = "uniform"  # randomize position: "default", "uniform"
         # randomize position
         position_default = [0.5, 0.0, 0.0]  # position default (x,y,z)
-        position_uniform_min = [0.4, -0.25, 0.0]  # position (x,y,z)
-        position_uniform_max = [0.6, 0.25, 0.0]  # position (x,y,z)
+        position_uniform_min = [0.4, -0.4, 0.0]  # position (x,y,z)
+        position_uniform_max = [0.6, 0.4, 0.0]  # position (x,y,z)
         # randomize orientation
         orientation_default = [1.0, 0.0, 0.0, 0.0]  # orientation default
 
