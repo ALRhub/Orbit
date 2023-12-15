@@ -25,7 +25,7 @@ from .box_pushing_cfg import BoxPushingEnvCfg, RandomizationCfg
 
 
 class BoxPushingEnv(IsaacEnv):
-    """Environment for lifting an object off a table with a single-arm manipulator."""
+    """Environment for pushing a box on a table with a single-arm manipulator."""
 
     def __init__(self, cfg: BoxPushingEnvCfg = None, **kwargs):
         # copy configuration
@@ -45,7 +45,7 @@ class BoxPushingEnv(IsaacEnv):
         self._initialize_views()
 
         # prepare the observation manager
-        self._observation_manager = LiftObservationManager(class_to_dict(self.cfg.observations), self, self.device)
+        self._observation_manager = BoxPushingObservationManager(class_to_dict(self.cfg.observations), self, self.device)
         # prepare the reward manager
         self._reward_manager = BoxPushingRewardManager(
             class_to_dict(self.cfg.rewards), self, self.num_envs, self.dt, self.device
@@ -355,7 +355,7 @@ class BoxPushingEnv(IsaacEnv):
         self.object_des_pose_w[env_ids, 0:3] += self.envs_positions[env_ids]
 
 
-class LiftObservationManager(ObservationManager):
+class BoxPushingObservationManager(ObservationManager):
     """Reward manager for single-arm reaching environment."""
 
     def arm_dof_pos(self, env: BoxPushingEnv):

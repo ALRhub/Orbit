@@ -190,11 +190,14 @@ class BoxPushingEnvCfg(IsaacEnvCfg):
     """Configuration for the Lift environment."""
 
     # General Settings
-    env: EnvCfg = EnvCfg(num_envs=4096, env_spacing=2.5, episode_length_s=5.0)
+    sim_step_size = 0.01
+    max_steps = 100
+    episode_length_s = max_steps * sim_step_size
+    env: EnvCfg = EnvCfg(num_envs=4096, env_spacing=2.5, episode_length_s=episode_length_s)
     viewer: ViewerCfg = ViewerCfg(debug_vis=True, eye=(7.5, 7.5, 7.5), lookat=(0.0, 0.0, 0.0))
     # Physics settings
     sim: SimCfg = SimCfg(
-        dt=0.01,
+        dt=sim_step_size,
         substeps=1,
         physx=PhysxCfg(
             gpu_found_lost_aggregate_pairs_capacity=1024 * 1024 * 4,
