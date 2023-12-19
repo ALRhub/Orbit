@@ -21,7 +21,9 @@ from omni.isaac.orbit.actuators.model import ImplicitActuatorCfg
 from omni.isaac.orbit.robots.single_arm import SingleArmManipulatorCfg
 
 
-_FRANKA_PANDA_ARM_INSTANCEABLE_USD = "/home/i53/student/bonneau/orbit/source/extensions/omni.isaac.contrib_envs/omni/isaac/contrib_envs/box_pushing/assets/franka_push_rod/panda_instanceable.usda"
+# _FRANKA_PANDA_ARM_INSTANCEABLE_USD = "/home/i53/student/bonneau/orbit/source/extensions/omni.isaac.contrib_envs/omni/isaac/contrib_envs/box_pushing/assets/franka_push_rod/panda_instanceable.usda"
+_FRANKA_PANDA_ARM_INSTANCEABLE_USD = "/home/i53/student/bonneau/orbit/source/extensions/omni.isaac.contrib_envs/omni/isaac/contrib_envs/box_pushing/assets/franka_push_rod/panda_rod.usda"
+
 
 
 FRANKA_PANDA_ARM_WITH_PANDA_HAND_CFG = SingleArmManipulatorCfg(
