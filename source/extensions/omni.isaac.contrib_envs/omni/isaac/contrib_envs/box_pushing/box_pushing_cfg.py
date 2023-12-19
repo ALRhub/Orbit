@@ -5,7 +5,7 @@
 
 from omni.isaac.orbit.controllers.differential_inverse_kinematics import DifferentialInverseKinematicsCfg
 from omni.isaac.orbit.objects import RigidObjectCfg
-from omni.isaac.orbit.robots.config.franka import FRANKA_PANDA_ARM_WITH_PANDA_HAND_CFG
+from omni.isaac.contrib_envs.box_pushing.assets.franka_push_rod.franka import FRANKA_PANDA_ARM_WITH_PANDA_HAND_CFG
 from omni.isaac.orbit.robots.single_arm import SingleArmManipulatorCfg
 from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
