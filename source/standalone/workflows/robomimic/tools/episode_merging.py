@@ -1,10 +1,11 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tool to merge multiple episodes with single trajectory into one episode with multiple trajectories."""
 
+from __future__ import annotations
 
 import argparse
 import h5py
@@ -13,7 +14,7 @@ import os
 
 if __name__ == "__main__":
     # parse arguments
-    parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
+    parser = argparse.ArgumentParser(description="Merge multiple episodes with single trajectory into one episode.")
     parser.add_argument(
         "--dir", type=str, default=None, help="Path to directory that contains all single episode hdf5 files"
     )

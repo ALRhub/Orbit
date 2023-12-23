@@ -1,20 +1,19 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""
-This submodule provides marker utilities for simplifying creation of UI elements in the GUI.
+"""Sub-package for marker utilities to simplify creation of UI elements in the GUI.
 
-Currently, the module provides two classes:
+Currently, the sub-package provides the following classes:
 
-* :class:`StaticMarker` for creating a group of markers from a single USD file.
-* :class:`PointMarker` for creating a group of spheres.
+* :class:`VisualizationMarkers` for creating a group of markers using `UsdGeom.PointInstancer
+  <https://graphics.pixar.com/usd/dev/api/class_usd_geom_point_instancer.html>`_.
 
 
 .. note::
 
-    For some simple usecases, it may be sufficient to use the debug drawing utilities from Isaac Sim.
+    For some simple use-cases, it may be sufficient to use the debug drawing utilities from Isaac Sim.
     The debug drawing API is available in the `omni.isaac.debug_drawing`_ module. It allows drawing of
     points and splines efficiently on the UI.
 
@@ -22,7 +21,7 @@ Currently, the module provides two classes:
 
 """
 
-from .point_marker import PointMarker
-from .static_marker import StaticMarker
+from __future__ import annotations
 
-__all__ = ["StaticMarker", "PointMarker"]
+from .config import *  # noqa: F401, F403
+from .visualization_markers import VisualizationMarkers, VisualizationMarkersCfg

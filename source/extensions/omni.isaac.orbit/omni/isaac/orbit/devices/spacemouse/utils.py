@@ -1,4 +1,4 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -28,17 +28,15 @@
 # SOFTWARE.
 
 
-__all__ = ["convert_buffer"]
-
-
 def convert_buffer(b1, b2):
     """Converts raw SpaceMouse readings to commands.
 
     Args:
-        b1 (int): 8-bit byte
-        b2 (int): 8-bit byte
+        b1: 8-bit byte
+        b2: 8-bit byte
+
     Returns:
-        float: Scaled value from Space-mouse message
+        Scaled value from Space-mouse message
     """
     return _scale_to_control(_to_int16(b1, b2))
 
@@ -52,10 +50,11 @@ def _to_int16(y1, y2):
     """Convert two 8 bit bytes to a signed 16 bit integer.
 
     Args:
-        y1 (int): 8-bit byte
-        y2 (int): 8-bit byte
+        y1: 8-bit byte
+        y2: 8-bit byte
+
     Returns:
-        int: 16-bit integer
+        16-bit integer
     """
     x = (y1) | (y2 << 8)
     if x >= 32768:
@@ -67,12 +66,13 @@ def _scale_to_control(x, axis_scale=350.0, min_v=-1.0, max_v=1.0):
     """Normalize raw HID readings to target range.
 
     Args:
-        x (int): Raw reading from HID
-        axis_scale (float): (Inverted) scaling factor for mapping raw input value
-        min_v (float): Minimum limit after scaling
-        max_v (float): Maximum limit after scaling
+        x: Raw reading from HID
+        axis_scale: (Inverted) scaling factor for mapping raw input value
+        min_v: Minimum limit after scaling
+        max_v: Maximum limit after scaling
+
     Returns:
-        float: Clipped, scaled input from HID
+        Clipped, scaled input from HID
     """
     x = x / axis_scale
     return min(max(x, min_v), max_v)

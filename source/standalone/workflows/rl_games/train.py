@@ -1,9 +1,11 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to train RL agent with RL-Games."""
+
+from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
@@ -11,11 +13,10 @@
 import argparse
 import os
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Train an RL agent with RL-Games.")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
 parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
 parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
@@ -23,26 +24,30 @@ parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU p
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
 # launch the simulator
-config = {"headless": args_cli.headless}
 # load cheaper kit config in headless
 if args_cli.headless:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.gym.headless.kit"
 else:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.kit"
-# launch the simulator
-simulation_app = SimulationApp(config, experience=app_experience)
-
+# launch omniverse app
+app_launcher = AppLauncher(args_cli, experience=app_experience)
+simulation_app = app_launcher.app
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
 import math
 import os
+import traceback
 from datetime import datetime
 
+import carb
 from rl_games.common import env_configurations, vecenv
 from rl_games.common.algo_observer import IsaacAlgoObserver
 from rl_games.torch_runner import Runner
@@ -50,12 +55,10 @@ from rl_games.torch_runner import Runner
 from omni.isaac.orbit.utils.dict import print_dict
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils import parse_env_cfg
-from omni.isaac.orbit_envs.utils.wrappers.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper
-
-from config import parse_rlg_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils import load_cfg_from_registry, parse_env_cfg
+from omni.isaac.orbit_tasks.utils.wrappers.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper
 
 
 def main():
@@ -65,7 +68,7 @@ def main():
 
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
-    agent_cfg = parse_rlg_cfg(args_cli.task)
+    agent_cfg = load_cfg_from_registry(args_cli.task, "rl_games_cfg_entry_point")
     # override from command line
     if args_cli_seed is not None:
         agent_cfg["params"]["seed"] = args_cli_seed
@@ -75,7 +78,7 @@ def main():
     log_root_path = os.path.abspath(log_root_path)
     print(f"[INFO] Logging experiment in directory: {log_root_path}")
     # specify directory for logging runs
-    log_dir = agent_cfg["params"]["config"].get("full_experiment_name", datetime.now().strftime("%b%d_%H-%M-%S"))
+    log_dir = agent_cfg["params"]["config"].get("full_experiment_name", datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     # set directory into agent config
     # logging directory path: <train_dir>/<full_experiment_name>
     agent_cfg["params"]["config"]["train_dir"] = log_root_path
@@ -93,13 +96,14 @@ def main():
     clip_actions = agent_cfg["params"]["env"].get("clip_actions", math.inf)
 
     # create isaac environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless, viewport=args_cli.video)
+    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
             "video_folder": os.path.join(log_dir, "videos"),
             "step_trigger": lambda step: step % args_cli.video_interval == 0,
             "video_length": args_cli.video_length,
+            "disable_logger": True,
         }
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
@@ -129,8 +133,16 @@ def main():
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

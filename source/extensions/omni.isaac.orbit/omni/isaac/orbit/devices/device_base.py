@@ -1,10 +1,11 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Base class for teleoperation interface."""
 
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any, Callable
@@ -19,7 +20,7 @@ class DeviceBase(ABC):
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
-        pass
+        return f"{self.__class__.__name__}"
 
     """
     Operations
@@ -35,8 +36,8 @@ class DeviceBase(ABC):
         """Add additional functions to bind keyboard.
 
         Args:
-            key (Any): The button to check against.
-            func (Callable): The function to call when key is pressed. The callback function should not
+            key: The button to check against.
+            func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
         raise NotImplementedError
@@ -46,6 +47,6 @@ class DeviceBase(ABC):
         """Provides the joystick event state.
 
         Returns:
-            Any: The processed output form the joystick.
+            The processed output form the joystick.
         """
         raise NotImplementedError

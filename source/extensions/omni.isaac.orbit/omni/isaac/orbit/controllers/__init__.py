@@ -1,17 +1,15 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-# enable motion generation extension
-from omni.isaac.core.utils.extensions import enable_extension
+"""Sub-package for different controllers and motion-generators.
 
-# TODO: Maybe keep this extension enabled by default? -- Fix the app experience.
-enable_extension("omni.isaac.motion_generation")
+Controllers or motion generators are responsible for closed-loop tracking of a given command. The
+controller can be a simple PID controller or a more complex controller such as impedance control
+or inverse kinematics control. The controller is responsible for generating the desired joint-level
+commands to be sent to the robot.
+"""
 
-
-# get module libraries
-from .differential_inverse_kinematics import DifferentialInverseKinematics
-from .rmp_flow import RmpFlowController
-
-__all__ = ["DifferentialInverseKinematics", "RmpFlowController"]
+from .differential_ik import DifferentialIKController
+from .differential_ik_cfg import DifferentialIKControllerCfg

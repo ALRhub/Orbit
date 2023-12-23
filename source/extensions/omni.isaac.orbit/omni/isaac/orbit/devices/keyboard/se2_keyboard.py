@@ -1,12 +1,14 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Keyboard controller for SE(2) control."""
 
+from __future__ import annotations
 
 import numpy as np
+import weakref
 from typing import Callable
 
 import carb
@@ -43,9 +45,9 @@ class Se2Keyboard(DeviceBase):
         """Initialize the keyboard layer.
 
         Args:
-            v_x_sensitivity (float): Magnitude of linear velocity along x-direction scaling. Defaults to 0.8.
-            v_y_sensitivity (float): Magnitude of linear velocity along y-direction scaling. Defaults to 0.4.
-            omega_z_sensitivity (float): Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
+            v_x_sensitivity: Magnitude of linear velocity along x-direction scaling. Defaults to 0.8.
+            v_y_sensitivity: Magnitude of linear velocity along y-direction scaling. Defaults to 0.4.
+            omega_z_sensitivity: Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
         """
         # store inputs
         self.v_x_sensitivity = v_x_sensitivity
@@ -55,7 +57,11 @@ class Se2Keyboard(DeviceBase):
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface()
         self._keyboard = self._appwindow.get_keyboard()
-        self._keyboard_sub = self._input.subscribe_to_keyboard_events(self._keyboard, self._on_keyboard_event)
+        # note: Use weakref on callbacks to ensure that this object can be deleted when its destructor is called
+        self._keyboard_sub = self._input.subscribe_to_keyboard_events(
+            self._keyboard,
+            lambda event, *args, obj=weakref.proxy(self): obj._on_keyboard_event(event, *args),
+        )
         # bindings for keyboard to command
         self._create_key_bindings()
         # command buffers
@@ -97,8 +103,8 @@ class Se2Keyboard(DeviceBase):
         `carb documentation <https://docs.omniverse.nvidia.com/kit/docs/carbonite/latest/docs/python/carb.html?highlight=keyboardeventtype#carb.input.KeyboardInput>`__.
 
         Args:
-            key (str): The keyboard button to check against.
-            func (Callable): The function to call when key is pressed. The callback function should not
+            key: The keyboard button to check against.
+            func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
         self._additional_callbacks[key] = func
@@ -107,7 +113,7 @@ class Se2Keyboard(DeviceBase):
         """Provides the result from keyboard event state.
 
         Returns:
-            np.ndarray: A 3D array containing the linear (x,y) and angular velocity (z).
+            3D array containing the linear (x,y) and angular velocity (z).
         """
         return self._base_command
 

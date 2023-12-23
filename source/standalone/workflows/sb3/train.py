@@ -1,9 +1,16 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Script to train RL agent with Stable Baselines3."""
+"""Script to train RL agent with Stable Baselines3.
+
+Since Stable-Baselines3 does not support buffers living on GPU directly,
+we recommend using smaller number of environments. Otherwise,
+there will be significant overhead in GPU->CPU transfer.
+"""
+
+from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
@@ -12,11 +19,10 @@ import argparse
 import numpy as np
 import os
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Train an RL agent with Stable-Baselines3.")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
 parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
 parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
@@ -24,6 +30,9 @@ parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU p
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
 # launch the simulator
@@ -33,16 +42,19 @@ if args_cli.headless:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.gym.headless.kit"
 else:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.kit"
-# launch the simulator
-simulation_app = SimulationApp(config, experience=app_experience)
+# launch omniverse app
+app_launcher = AppLauncher(args_cli, experience=app_experience)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
 import os
+import traceback
 from datetime import datetime
 
+import carb
 from stable_baselines3 import PPO
 from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.logger import configure
@@ -51,43 +63,45 @@ from stable_baselines3.common.vec_env import VecNormalize
 from omni.isaac.orbit.utils.dict import print_dict
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils import parse_env_cfg
-from omni.isaac.orbit_envs.utils.wrappers.sb3 import Sb3VecEnvWrapper
-
-from config import parse_sb3_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils import load_cfg_from_registry, parse_env_cfg
+from omni.isaac.orbit_tasks.utils.wrappers.sb3 import Sb3VecEnvWrapper, process_sb3_cfg
 
 
 def main():
     """Train with stable-baselines agent."""
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
-    agent_cfg = parse_sb3_cfg(args_cli.task)
+    agent_cfg = load_cfg_from_registry(args_cli.task, "sb3_cfg_entry_point")
+
     # override configuration with command line arguments
     if args_cli.seed is not None:
         agent_cfg["seed"] = args_cli.seed
 
     # directory for logging into
-    log_dir = os.path.join("logs", "sb3", args_cli.task, datetime.now().strftime("%b%d_%H-%M-%S"))
+    log_dir = os.path.join("logs", "sb3", args_cli.task, datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
     dump_yaml(os.path.join(log_dir, "params", "agent.yaml"), agent_cfg)
     dump_pickle(os.path.join(log_dir, "params", "env.pkl"), env_cfg)
     dump_pickle(os.path.join(log_dir, "params", "agent.pkl"), agent_cfg)
 
+    # post-process agent configuration
+    agent_cfg = process_sb3_cfg(agent_cfg)
     # read configurations about the agent-training
     policy_arch = agent_cfg.pop("policy")
     n_timesteps = agent_cfg.pop("n_timesteps")
 
     # create isaac environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless, viewport=args_cli.video)
+    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
             "video_folder": os.path.join(log_dir, "videos"),
             "step_trigger": lambda step: step % args_cli.video_interval == 0,
             "video_length": args_cli.video_length,
+            "disable_logger": True,
         }
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
@@ -115,7 +129,7 @@ def main():
     agent.set_logger(new_logger)
 
     # callbacks for agent
-    checkpoint_callback = CheckpointCallback(save_freq=100, save_path=log_dir, name_prefix="model", verbose=2)
+    checkpoint_callback = CheckpointCallback(save_freq=1000, save_path=log_dir, name_prefix="model", verbose=2)
     # train the agent
     agent.learn(total_timesteps=n_timesteps, callback=checkpoint_callback)
     # save the final model
@@ -123,8 +137,16 @@ def main():
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

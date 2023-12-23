@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 #==
 # Configurations
 #==
@@ -171,20 +176,27 @@ update_vscode_settings() {
     echo "[INFO] Setting up vscode settings..."
     # retrieve the python executable
     python_exe=$(extract_python_exe)
-    # run the setup script
-    ${python_exe} ${ORBIT_PATH}/.vscode/tools/setup_vscode.py
+    # path to setup_vscode.py
+    setup_vscode_script="${ORBIT_PATH}/.vscode/tools/setup_vscode.py"
+    # check if the file exists before attempting to run it
+    if [ -f "${setup_vscode_script}" ]; then
+        ${python_exe} "${setup_vscode_script}"
+    else
+        echo "[WARNING] setup_vscode.py not found. Aborting vscode settings setup."
+    fi
 }
 
 # print the usage description
 print_help () {
-    echo -e "\nusage: $(basename "$0") [-h] [-i] [-e] [-f] [-p] [-s] [-v] [-d] [-c] -- Utility to manage extensions in Orbit."
+    echo -e "\nusage: $(basename "$0") [-h] [-i] [-e] [-f] [-p] [-s] [-o] [-v] [-d] [-c] -- Utility to manage extensions in Orbit."
     echo -e "\noptional arguments:"
     echo -e "\t-h, --help           Display the help content."
-    echo -e "\t-i, --install        Install the extensions inside Isaac Orbit."
+    echo -e "\t-i, --install        Install the extensions inside Orbit."
     echo -e "\t-e, --extra          Install extra dependencies such as the learning frameworks."
     echo -e "\t-f, --format         Run pre-commit to format the code and check lints."
     echo -e "\t-p, --python         Run the python executable (python.sh) provided by Isaac Sim."
     echo -e "\t-s, --sim            Run the simulator executable (isaac-sim.sh) provided by Isaac Sim."
+    echo -e "\t-o, --docker         Run the docker container helper script (docker/container.sh)."
     echo -e "\t-v, --vscode         Generate the VSCode settings file from template."
     echo -e "\t-d, --docs           Build the documentation from source using sphinx."
     echo -e "\t-c, --conda [NAME]   Create the conda environment for Orbit. Default name is 'orbit'."
@@ -226,8 +238,17 @@ while [[ $# -gt 0 ]]; do
             # install the python packages for supported reinforcement learning frameworks
             echo "[INFO] Installing extra requirements such as learning frameworks..."
             python_exe=$(extract_python_exe)
+            # check if specified which rl-framework to install
+            if [ -z "$2" ]; then
+                echo "[INFO] Installing all rl-frameworks..."
+                framework_name="all"
+            else
+                echo "[INFO] Installing rl-framework: $2"
+                framework_name=$2
+                shift # past argument
+            fi
             # install the rl-frameworks specified
-            ${python_exe} -m pip install -e ${ORBIT_PATH}/source/extensions/omni.isaac.orbit_envs[all]
+            ${python_exe} -m pip install -e ${ORBIT_PATH}/source/extensions/omni.isaac.orbit_tasks["${framework_name}"]
             shift # past argument
             ;;
         -c|--conda)
@@ -286,6 +307,15 @@ while [[ $# -gt 0 ]]; do
             echo "[INFO] Running isaac-sim from: ${isaacsim_exe}"
             shift # past argument
             ${isaacsim_exe} --ext-folder ${ORBIT_PATH}/source/extensions $@
+            # exit neatly
+            break
+            ;;
+        -o|--docker)
+            # run the docker container helper script
+            docker_script=${ORBIT_PATH}/docker/container.sh
+            echo "[INFO] Running docker utility script from: ${docker_script}"
+            shift # past argument
+            bash ${docker_script} $@
             # exit neatly
             break
             ;;

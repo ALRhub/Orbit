@@ -1,39 +1,39 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Utilities for working with dictionaries."""
+"""Sub-module for utilities for working with dictionaries."""
 
+from __future__ import annotations
 
 import collections.abc
-import importlib
-import inspect
-from typing import Any, Callable, Dict, Iterable, Mapping
+import hashlib
+import json
+from typing import Any, Iterable, Mapping
 
 from .array import TENSOR_TYPE_CONVERSIONS, TENSOR_TYPES
-
-__all__ = ["class_to_dict", "update_class_from_dict", "convert_dict_to_backend", "update_dict", "print_dict"]
+from .string import callable_to_string, string_to_callable
 
 """
 Dictionary <-> Class operations.
 """
 
 
-def class_to_dict(obj: object) -> Dict[str, Any]:
+def class_to_dict(obj: object) -> dict[str, Any]:
     """Convert an object into dictionary recursively.
 
     Note:
         Ignores all names starting with "__" (i.e. built-in methods).
 
     Args:
-        obj (object): An instance of a class to convert.
+        obj: An instance of a class to convert.
 
     Raises:
         ValueError: When input argument is not an object.
 
     Returns:
-        Dict[str, Any]: Converted dictionary mapping.
+        Converted dictionary mapping.
     """
     # check that input data is class instance
     if not hasattr(obj, "__class__"):
@@ -51,7 +51,7 @@ def class_to_dict(obj: object) -> Dict[str, Any]:
             continue
         # check if attribute is callable -- function
         if callable(value):
-            data[key] = f"{value.__module__}:{value.__name__}"
+            data[key] = callable_to_string(value)
         # check if attribute is a dictionary
         elif hasattr(value, "__dict__") or isinstance(value, dict):
             data[key] = class_to_dict(value)
@@ -60,15 +60,15 @@ def class_to_dict(obj: object) -> Dict[str, Any]:
     return data
 
 
-def update_class_from_dict(obj, data: Dict[str, Any], _ns: str = "") -> None:
+def update_class_from_dict(obj, data: dict[str, Any], _ns: str = "") -> None:
     """Reads a dictionary and sets object variables recursively.
 
     This function performs in-place update of the class member attributes.
 
     Args:
-        obj (object): An instance of a class to update.
-        data (Dict[str, Any]): Input dictionary to update from.
-        _ns (str): Namespace of the current object. This is useful for nested configuration
+        obj: An instance of a class to update.
+        data: Input dictionary to update from.
+        _ns: Namespace of the current object. This is useful for nested configuration
             classes or dictionaries. Defaults to "".
 
     Raises:
@@ -87,7 +87,7 @@ def update_class_from_dict(obj, data: Dict[str, Any], _ns: str = "") -> None:
                 # iterate over the dictionary to look for callable values
                 for k, v in obj_mem.items():
                     if callable(v):
-                        value[k] = _string_to_callable(value[k])
+                        value[k] = string_to_callable(value[k])
                 setattr(obj, key, value)
             elif isinstance(value, Mapping):
                 # recursively call if it is a dictionary
@@ -96,23 +96,51 @@ def update_class_from_dict(obj, data: Dict[str, Any], _ns: str = "") -> None:
                 # check length of value to be safe
                 if len(obj_mem) != len(value) and obj_mem is not None:
                     raise ValueError(
-                        f"[Config]: Incorrect length under namespace: {key_ns}. Expected: {len(obj_mem)}, Received: {len(value)}."
+                        f"[Config]: Incorrect length under namespace: {key_ns}."
+                        f" Expected: {len(obj_mem)}, Received: {len(value)}."
                     )
                 # set value
                 setattr(obj, key, value)
             elif callable(obj_mem):
                 # update function name
-                value = _string_to_callable(value)
+                value = string_to_callable(value)
                 setattr(obj, key, value)
             elif isinstance(value, type(obj_mem)):
                 # check that they are type-safe
                 setattr(obj, key, value)
             else:
                 raise ValueError(
-                    f"[Config]: Incorrect type under namespace: {key_ns}. Expected: {type(obj_mem)}, Received: {type(value)}."
+                    f"[Config]: Incorrect type under namespace: {key_ns}."
+                    f" Expected: {type(obj_mem)}, Received: {type(value)}."
                 )
         else:
             raise KeyError(f"[Config]: Key not found under namespace: {key_ns}.")
+
+
+"""
+Dictionary <-> Hashable operations.
+"""
+
+
+def dict_to_md5_hash(data: object) -> str:
+    """Convert a dictionary into a hashable key using MD5 hash.
+
+    Args:
+        data: Input dictionary or configuration object to convert.
+
+    Returns:
+        A string object of double length containing only hexadecimal digits.
+    """
+    # convert to dictionary
+    if isinstance(data, dict):
+        encoded_buffer = json.dumps(data, sort_keys=True).encode()
+    else:
+        encoded_buffer = json.dumps(class_to_dict(data), sort_keys=True).encode()
+    # compute hash using MD5
+    data_hash = hashlib.md5()
+    data_hash.update(encoded_buffer)
+    # return the hash key
+    return data_hash.hexdigest()
 
 
 """
@@ -135,10 +163,10 @@ def convert_dict_to_backend(
         (e.g. lists) are referenced by the new dictionary, so they are not copied.
 
     Args:
-        data (dict): An input dict containing array or tensor data as values.
-        backend(str): The backend ("numpy", "torch", "warp") to which arrays in this dict should be converted.
+        data: An input dict containing array or tensor data as values.
+        backend: The backend ("numpy", "torch", "warp") to which arrays in this dict should be converted.
             Defaults to "numpy".
-        array_types(Iterable[str]): A list containing the types of arrays that should be converted to
+        array_types: A list containing the types of arrays that should be converted to
             the desired backend. Defaults to ("numpy", "torch", "warp").
 
     Raises:
@@ -146,7 +174,7 @@ def convert_dict_to_backend(
             backends ("numpy", "torch", "warp").
 
     Returns:
-        dict: The updated dict with the data converted to the desired backend.
+        The updated dict with the data converted to the desired backend.
     """
     # THINK: Should we also support converting to a specific device, e.g. "cuda:0"?
     # Check the backend is valid.
@@ -199,11 +227,11 @@ def update_dict(orig_dict: dict, new_dict: collections.abc.Mapping) -> dict:
         https://stackoverflow.com/questions/3232943/update-value-of-a-nested-dictionary-of-varying-depth
 
     Args:
-        orig_dict (dict): The original dictionary to insert items to.
-        new_dict (collections.abc.Mapping): The new dictionary to insert items from.
+        orig_dict: The original dictionary to insert items to.
+        new_dict: The new dictionary to insert items from.
 
     Returns:
-        dict: The updated dictionary.
+        The updated dictionary.
     """
     for keyname, value in new_dict.items():
         if isinstance(value, collections.abc.Mapping):
@@ -215,7 +243,7 @@ def update_dict(orig_dict: dict, new_dict: collections.abc.Mapping) -> dict:
 
 def print_dict(val, nesting: int = -4, start: bool = True):
     """Outputs a nested dictionary."""
-    if type(val) == dict:
+    if isinstance(val, dict):
         if not start:
             print("")
         nesting += 4
@@ -225,45 +253,7 @@ def print_dict(val, nesting: int = -4, start: bool = True):
             print_dict(val[k], nesting, start=False)
     else:
         # deal with functions in print statements
-        if callable(val) and val.__name__ == "<lambda>":
-            print("lambda", inspect.getsourcelines(val)[0][0].strip().split("lambda")[1].strip()[:-1])
-        elif callable(val):
-            print(f"{val.__module__}:{val.__name__}")
+        if callable(val):
+            print(callable_to_string(val))
         else:
             print(val)
-
-
-"""
-Private helper functions.
-"""
-
-
-def _string_to_callable(name: str) -> Callable:
-    """Resolves the module and function names to return the function.
-
-    Args:
-        name (str): The function name. The format should be 'module:attribute_name'.
-
-    Raises:
-        ValueError: When the resolved attribute is not a function.
-        ValueError: _description_
-
-    Returns:
-        Callable: The function loaded from the module.
-    """
-    try:
-        mod_name, attr_name = name.split(":")
-        mod = importlib.import_module(mod_name)
-        callable_object = getattr(mod, attr_name)
-        # check if attribute is callable
-        if callable(callable_object):
-            return callable_object
-        else:
-            raise ValueError(f"The imported object is not callable: '{name}'")
-    except AttributeError as e:
-        msg = (
-            "While updating the config from a dictionary, we could not interpret the entry"
-            "as a callable object. The format of input should be 'module:attribute_name'\n"
-            f"While processing input '{name}', received the error:\n {e}."
-        )
-        raise ValueError(msg)

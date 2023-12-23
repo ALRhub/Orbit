@@ -1,12 +1,12 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Keyboard controller for SE(3) control."""
 
-
 import numpy as np
+import weakref
 from scipy.spatial.transform.rotation import Rotation
 from typing import Callable, Tuple
 
@@ -51,8 +51,8 @@ class Se3Keyboard(DeviceBase):
         """Initialize the keyboard layer.
 
         Args:
-            pos_sensitivity (float): Magnitude of input position command scaling. Defaults to 0.05.
-            rot_sensitivity (float): Magnitude of scale input rotation commands scaling. Defaults to 0.5.
+            pos_sensitivity: Magnitude of input position command scaling. Defaults to 0.05.
+            rot_sensitivity: Magnitude of scale input rotation commands scaling. Defaults to 0.5.
         """
         # store inputs
         self.pos_sensitivity = pos_sensitivity
@@ -61,7 +61,11 @@ class Se3Keyboard(DeviceBase):
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface()
         self._keyboard = self._appwindow.get_keyboard()
-        self._keyboard_sub = self._input.subscribe_to_keyboard_events(self._keyboard, self._on_keyboard_event)
+        # note: Use weakref on callbacks to ensure that this object can be deleted when its destructor is called.
+        self._keyboard_sub = self._input.subscribe_to_keyboard_events(
+            self._keyboard,
+            lambda event, *args, obj=weakref.proxy(self): obj._on_keyboard_event(event, *args),
+        )
         # bindings for keyboard to command
         self._create_key_bindings()
         # command buffers
@@ -107,8 +111,8 @@ class Se3Keyboard(DeviceBase):
         `carb documentation <https://docs.omniverse.nvidia.com/kit/docs/carbonite/latest/docs/python/carb.html?highlight=keyboardeventtype#carb.input.KeyboardInput>`__.
 
         Args:
-            key (str): The keyboard button to check against.
-            func (Callable): The function to call when key is pressed. The callback function should not
+            key: The keyboard button to check against.
+            func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
         self._additional_callbacks[key] = func
@@ -117,7 +121,7 @@ class Se3Keyboard(DeviceBase):
         """Provides the result from keyboard event state.
 
         Returns:
-            Tuple[np.ndarray, bool]: A tuple containing the delta pose command and gripper commands.
+            A tuple containing the delta pose command and gripper commands.
         """
         # convert to rotation vector
         rot_vec = Rotation.from_euler("XYZ", self._delta_rot).as_rotvec()

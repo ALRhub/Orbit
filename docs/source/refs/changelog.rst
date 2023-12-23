@@ -15,19 +15,28 @@ Extension containing the core framework of Orbit.
    :start-line: 3
 
 
-omni.isaac.orbit_envs
----------------------
+omni.isaac.orbit_assets
+------------------------
 
-Extension containing the environments built using Orbit.
+Extension for configurations of various assets and sensors for Orbit.
 
-.. include:: ../../../source/extensions/omni.isaac.orbit_envs/docs/CHANGELOG.rst
+.. include:: ../../../source/extensions/omni.isaac.orbit_assets/docs/CHANGELOG.rst
    :start-line: 3
 
 
-omni.isaac.contrib_envs
------------------------
+omni.isaac.orbit_tasks
+----------------------
+
+Extension containing the environments built using Orbit.
+
+.. include:: ../../../source/extensions/omni.isaac.orbit_tasks/docs/CHANGELOG.rst
+   :start-line: 3
+
+
+omni.isaac.contrib_tasks
+------------------------
 
 Extension for environments contributed by the community.
 
-.. include:: ../../../source/extensions/omni.isaac.contrib_envs/docs/CHANGELOG.rst
+.. include:: ../../../source/extensions/omni.isaac.contrib_tasks/docs/CHANGELOG.rst
    :start-line: 3

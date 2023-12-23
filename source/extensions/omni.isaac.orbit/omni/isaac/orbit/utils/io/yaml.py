@@ -1,4 +1,4 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -16,13 +16,13 @@ def load_yaml(filename: str) -> Dict:
     """Loads an input PKL file safely.
 
     Args:
-        filename (str): The path to pickled file.
+        filename: The path to pickled file.
 
     Raises:
         FileNotFoundError: When the specified file does not exist.
 
     Returns:
-        Dict: The data read from the input file.
+        The data read from the input file.
     """
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
@@ -31,15 +31,16 @@ def load_yaml(filename: str) -> Dict:
     return data
 
 
-def dump_yaml(filename: str, data: Union[Dict, object]):
+def dump_yaml(filename: str, data: Union[Dict, object], sort_keys: bool = False):
     """Saves data into a YAML file safely.
 
     Note:
         The function creates any missing directory along the file's path.
 
     Args:
-        filename (str): The path to save the file at.
-        data (Union[Dict, object]): The data to save either a dictionary or class object.
+        filename: The path to save the file at.
+        data: The data to save either a dictionary or class object.
+        sort_keys: Whether to sort the keys in the output file. Defaults to False.
     """
     # check ending
     if not filename.endswith("yaml"):
@@ -52,4 +53,4 @@ def dump_yaml(filename: str, data: Union[Dict, object]):
         data = class_to_dict(data)
     # save data
     with open(filename, "w") as f:
-        yaml.dump(data, f, default_flow_style=None)
+        yaml.dump(data, f, default_flow_style=False, sort_keys=sort_keys)

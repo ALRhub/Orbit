@@ -1,46 +1,52 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to run a trained policy from robomimic."""
 
+from __future__ import annotations
+
 """Launch Isaac Sim Simulator first."""
 
 
 import argparse
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Play policy trained using robomimic for Orbit environments.")
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--checkpoint", type=str, default=None, help="Pytorch model checkpoint to load.")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
-# launch the simulator
-config = {"headless": args_cli.headless}
-simulation_app = SimulationApp(config)
+# launch omniverse app
+app_launcher = AppLauncher(args_cli)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
 import torch
+import traceback
 
+import carb
 import robomimic  # noqa: F401
 import robomimic.utils.file_utils as FileUtils
 import robomimic.utils.torch_utils as TorchUtils
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils import parse_env_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils import parse_env_cfg
 
 
 def main():
-    """Run a trained policy from robomimic with Isaac Orbit environment."""
+    """Run a trained policy from robomimic with Orbit environment."""
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=1)
     # modify configuration
@@ -51,7 +57,7 @@ def main():
     env_cfg.observations.return_dict_obs_in_group = True
 
     # create environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless)
+    env = gym.make(args_cli.task, cfg=env_cfg)
 
     # acquire device
     device = TorchUtils.get_torch_device(try_to_use_cuda=True)
@@ -64,21 +70,28 @@ def main():
     obs = obs_dict["policy"]
     # simulate environment
     while simulation_app.is_running():
-        # compute actions
-        actions = policy(obs)
-        actions = torch.from_numpy(actions).to(device=device).view(1, env.action_space.shape[0])
-        # apply actions
-        obs_dict, _, _, _ = env.step(actions)
-        # check if simulator is stopped
-        if env.unwrapped.sim.is_stopped():
-            break
-        # robomimic only cares about policy observations
-        obs = obs_dict["policy"]
+        # run everything in inference mode
+        with torch.inference_mode():
+            # compute actions
+            actions = policy(obs)
+            actions = torch.from_numpy(actions).to(device=device).view(1, env.action_space.shape[0])
+            # apply actions
+            obs_dict, _, _, _ = env.step(actions)
+            # robomimic only cares about policy observations
+            obs = obs_dict["policy"]
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

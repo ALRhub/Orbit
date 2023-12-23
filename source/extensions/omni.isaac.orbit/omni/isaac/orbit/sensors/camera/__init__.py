@@ -1,13 +1,11 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""
-Camera wrapper around USD camera prim to provide an interface that follows the robotics convention.
-"""
+"""Sub-module for camera wrapper around USD camera prim."""
 
-from .camera import Camera, CameraData
-from .camera_cfg import FisheyeCameraCfg, PinholeCameraCfg
-
-__all__ = ["Camera", "CameraData", "PinholeCameraCfg", "FisheyeCameraCfg"]
+from .camera import Camera
+from .camera_cfg import CameraCfg
+from .camera_data import CameraData
+from .utils import *  # noqa: F401, F403

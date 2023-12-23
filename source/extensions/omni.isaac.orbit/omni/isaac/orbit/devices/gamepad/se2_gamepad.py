@@ -1,12 +1,14 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Gamepad controller for SE(2) control."""
 
+from __future__ import annotations
 
 import numpy as np
+import weakref
 from typing import Callable
 
 import carb
@@ -49,10 +51,10 @@ class Se2Gamepad(DeviceBase):
         """Initialize the gamepad layer.
 
         Args:
-            v_x_sensitivity (float): Magnitude of linear velocity along x-direction scaling. Defaults to 1.0.
-            v_y_sensitivity (float): Magnitude of linear velocity along y-direction scaling. Defaults to 1.0.
-            omega_z_sensitivity (float): Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
-            dead_zone (float): Magnitude of dead zone for gamepad. An event value from the gamepad less than
+            v_x_sensitivity: Magnitude of linear velocity along x-direction scaling. Defaults to 1.0.
+            v_y_sensitivity: Magnitude of linear velocity along y-direction scaling. Defaults to 1.0.
+            omega_z_sensitivity: Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
+            dead_zone: Magnitude of dead zone for gamepad. An event value from the gamepad less than
                 this value will be ignored. Defaults to 0.01.
         """
         # turn off simulator gamepad control
@@ -67,7 +69,11 @@ class Se2Gamepad(DeviceBase):
         self._appwindow = omni.appwindow.get_default_app_window()
         self._input = carb.input.acquire_input_interface()
         self._gamepad = self._appwindow.get_gamepad(0)
-        self._gamepad_sub = self._input.subscribe_to_gamepad_events(self._gamepad, self._on_gamepad_event)
+        # note: Use weakref on callbacks to ensure that this object can be deleted when its destructor is called
+        self._gamepad_sub = self._input.subscribe_to_gamepad_events(
+            self._gamepad,
+            lambda event, *args, obj=weakref.proxy(self): obj._on_gamepad_event(event, *args),
+        )
         # bindings for gamepad to command
         self._create_key_bindings()
         # command buffers
@@ -110,8 +116,8 @@ class Se2Gamepad(DeviceBase):
         `carb documentation <https://docs.omniverse.nvidia.com/kit/docs/carbonite/latest/docs/python/carb.html#carb.input.GamepadInput>`__.
 
         Args:
-            key (carb.input.GamepadInput): The gamepad button to check against.
-            func (Callable): The function to call when key is pressed. The callback function should not
+            key: The gamepad button to check against.
+            func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
         self._additional_callbacks[key] = func
@@ -120,7 +126,7 @@ class Se2Gamepad(DeviceBase):
         """Provides the result from gamepad event state.
 
         Returns:
-            np.ndarray: A 3D array containing the linear (x,y) and angular velocity (z).
+            A 3D array containing the linear (x,y) and angular velocity (z).
         """
         return self._resolve_command_buffer(self._base_command_raw)
 
@@ -139,7 +145,6 @@ class Se2Gamepad(DeviceBase):
         cur_val = event.value
         if abs(cur_val) < self.dead_zone:
             cur_val = 0
-        print(event)
         # -- left and right stick
         if event.input in self._INPUT_STICK_VALUE_MAPPING:
             direction, axis, value = self._INPUT_STICK_VALUE_MAPPING[event.input]
@@ -174,13 +179,13 @@ class Se2Gamepad(DeviceBase):
         """Resolves the command buffer.
 
         Args:
-            raw_command (np.ndarray): The raw command from the gamepad. Shape: (2, 3)
+            raw_command: The raw command from the gamepad. Shape is (2, 3)
                 This is a 2D array since gamepad dpad/stick returns two values corresponding to
                 the positive and negative direction. The first index is the direction (0: positive, 1: negative)
                 and the second index is value (absolute) of the command.
 
         Returns:
-            np.ndarray: resolved command. Shape: (3,)
+            Resolved command. Shape is (3,)
         """
         # compare the positive and negative value decide the sign of the value
         #   if the positive value is larger, the sign is positive (i.e. False, 0)

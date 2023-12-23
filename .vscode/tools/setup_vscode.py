@@ -1,10 +1,10 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
-#
 
-"""
+"""This script sets up the vs-code settings for the orbit project.
+
 This script merges the python.analysis.extraPaths from the "_isaac_sim/.vscode/settings.json" file into
 the ".vscode/settings.json" file.
 
@@ -25,14 +25,19 @@ ISAACSIM_DIR = os.path.join(ORBIT_DIR, "_isaac_sim")
 
 
 def overwrite_python_analysis_extra_paths(orbit_settings: str) -> str:
-    """Overwrite the python.analysis.extraPaths in the orbit settings file with the path names
-    from the isaac-sim settings file.
+    """Overwrite the python.analysis.extraPaths in the orbit settings file.
+
+    The extraPaths are replaced with the path names from the isaac-sim settings file that exists in the
+    "_isaac_sim/.vscode/settings.json" file.
 
     Args:
-        orbit_settings (str): The settings string to use as template.
+        orbit_settings: The settings string to use as template.
 
     Returns:
         The settings string with overwritten python analysis extra paths.
+
+    Raises:
+        FileNotFoundError: If the isaac-sim settings file does not exist.
     """
     # isaac-sim settings
     isaacsim_vscode_filename = os.path.join(ISAACSIM_DIR, ".vscode", "settings.json")
@@ -68,11 +73,14 @@ def overwrite_python_analysis_extra_paths(orbit_settings: str) -> str:
 
 
 def overwrite_default_python_interpreter(orbit_settings: str) -> str:
-    """Overwrite the default python interpreter in the orbit settings file with the path to the
-    python interpreter used.
+    """Overwrite the default python interpreter in the orbit settings file.
+
+    The default python interpreter is replaced with the path to the python interpreter used by the
+    isaac-sim project. This is necessary because the default python interpreter is the one shipped with
+    isaac-sim.
 
     Args:
-        orbit_settings (str): The settings string to use as template.
+        orbit_settings: The settings string to use as template.
 
     Returns:
         The settings string with overwritten default python interpreter.
@@ -123,6 +131,20 @@ def main():
     orbit_vscode_filename = os.path.join(ORBIT_DIR, ".vscode", "settings.json")
     with open(orbit_vscode_filename, "w") as f:
         f.write(orbit_settings)
+
+    # copy the launch.json file if it doesn't exist
+    orbit_vscode_launch_filename = os.path.join(ORBIT_DIR, ".vscode", "launch.json")
+    orbit_vscode_template_launch_filename = os.path.join(ORBIT_DIR, ".vscode", "tools", "launch.template.json")
+    if not os.path.exists(orbit_vscode_launch_filename):
+        # read template launch settings
+        with open(orbit_vscode_template_launch_filename) as f:
+            orbit_template_launch_settings = f.read()
+        # add header
+        header_message = header_message.replace(orbit_vscode_template_filename, orbit_vscode_template_launch_filename)
+        orbit_launch_settings = header_message + orbit_template_launch_settings
+        # write the orbit launch settings file
+        with open(orbit_vscode_launch_filename, "w") as f:
+            f.write(orbit_launch_settings)
 
 
 if __name__ == "__main__":

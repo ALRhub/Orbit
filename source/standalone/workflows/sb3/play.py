@@ -1,9 +1,11 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to play a checkpoint if an RL agent from Stable-Baselines3."""
+
+from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
@@ -11,47 +13,58 @@
 import argparse
 import numpy as np
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Play a checkpoint of an RL agent from Stable-Baselines3.")
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--checkpoint", type=str, default=None, help="Path to model checkpoint.")
+parser.add_argument(
+    "--use_last_checkpoint",
+    action="store_true",
+    help="When no checkpoint provided, use the last saved model. Otherwise use the best saved model.",
+)
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
-# launch the simulator
-config = {"headless": args_cli.headless}
-simulation_app = SimulationApp(config)
+# launch omniverse app
+app_launcher = AppLauncher(args_cli)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
+import os
+import torch
+import traceback
 
+import carb
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import VecNormalize
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils.parse_cfg import parse_env_cfg
-from omni.isaac.orbit_envs.utils.wrappers.sb3 import Sb3VecEnvWrapper
-
-from config import parse_sb3_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils.parse_cfg import get_checkpoint_path, load_cfg_from_registry, parse_env_cfg
+from omni.isaac.orbit_tasks.utils.wrappers.sb3 import Sb3VecEnvWrapper, process_sb3_cfg
 
 
 def main():
     """Play with stable-baselines agent."""
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
+    agent_cfg = load_cfg_from_registry(args_cli.task, "sb3_cfg_entry_point")
+    # post-process agent configuration
+    agent_cfg = process_sb3_cfg(agent_cfg)
+
     # create isaac environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless)
+    env = gym.make(args_cli.task, cfg=env_cfg)
     # wrap around environment for stable baselines
     env = Sb3VecEnvWrapper(env)
-    # parse agent configuration
-    agent_cfg = parse_sb3_cfg(args_cli.task)
 
     # normalize environment (if needed)
     if "normalize_input" in agent_cfg:
@@ -65,29 +78,45 @@ def main():
             clip_reward=np.inf,
         )
 
+    # directory for logging into
+    log_root_path = os.path.join("logs", "sb3", args_cli.task)
+    log_root_path = os.path.abspath(log_root_path)
     # check checkpoint is valid
     if args_cli.checkpoint is None:
-        raise ValueError("Checkpoint path is not valid.")
+        if args_cli.use_last_checkpoint:
+            checkpoint = "model_.*.zip"
+        else:
+            checkpoint = "model.zip"
+        checkpoint_path = get_checkpoint_path(log_root_path, ".*", checkpoint)
+    else:
+        checkpoint_path = args_cli.checkpoint
     # create agent from stable baselines
-    print(f"Loading checkpoint from: {args_cli.checkpoint}")
-    agent = PPO.load(args_cli.checkpoint, env, print_system_info=True)
+    print(f"Loading checkpoint from: {checkpoint_path}")
+    agent = PPO.load(checkpoint_path, env, print_system_info=True)
 
     # reset environment
     obs = env.reset()
     # simulate environment
     while simulation_app.is_running():
-        # agent stepping
-        actions, _ = agent.predict(obs, deterministic=True)
-        # env stepping
-        obs, _, _, _ = env.step(actions)
-        # check if simulator is stopped
-        if env.unwrapped.sim.is_stopped():
-            break
+        # run everything in inference mode
+        with torch.inference_mode():
+            # agent stepping
+            actions, _ = agent.predict(obs, deterministic=True)
+            # env stepping
+            obs, _, _, _ = env.step(actions)
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

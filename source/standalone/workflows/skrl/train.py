@@ -1,4 +1,4 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -10,17 +10,18 @@ Visit the skrl documentation (https://skrl.readthedocs.io) to see the examples s
 a more user-friendly way.
 """
 
+from __future__ import annotations
+
 """Launch Isaac Sim Simulator first."""
 
 
 import argparse
 import os
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Train an RL agent with skrl.")
 parser.add_argument("--video", action="store_true", default=False, help="Record videos during training.")
 parser.add_argument("--video_length", type=int, default=200, help="Length of the recorded video (in steps).")
 parser.add_argument("--video_interval", type=int, default=2000, help="Interval between video recordings (in steps).")
@@ -28,24 +29,30 @@ parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU p
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
 # launch the simulator
-config = {"headless": args_cli.headless}
 # load cheaper kit config in headless
 if args_cli.headless:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.gym.headless.kit"
 else:
     app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.kit"
-# launch the simulator
-simulation_app = SimulationApp(config, experience=app_experience)
+
+# launch omniverse app
+app_launcher = AppLauncher(args_cli, experience=app_experience)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
+import traceback
 from datetime import datetime
 
+import carb
 from skrl.agents.torch.ppo import PPO, PPO_DEFAULT_CONFIG
 from skrl.memories.torch import RandomMemory
 from skrl.utils import set_seed
@@ -54,12 +61,10 @@ from skrl.utils.model_instantiators import deterministic_model, gaussian_model, 
 from omni.isaac.orbit.utils.dict import print_dict
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils import parse_env_cfg
-from omni.isaac.orbit_envs.utils.wrappers.skrl import SkrlSequentialLogTrainer, SkrlVecEnvWrapper
-
-from config import convert_skrl_cfg, parse_skrl_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils import load_cfg_from_registry, parse_env_cfg
+from omni.isaac.orbit_tasks.utils.wrappers.skrl import SkrlSequentialLogTrainer, SkrlVecEnvWrapper, process_skrl_cfg
 
 
 def main():
@@ -69,14 +74,14 @@ def main():
 
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
-    experiment_cfg = parse_skrl_cfg(args_cli.task)
+    experiment_cfg = load_cfg_from_registry(args_cli.task, "skrl_cfg_entry_point")
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "skrl", experiment_cfg["agent"]["experiment"]["directory"])
     log_root_path = os.path.abspath(log_root_path)
     print(f"[INFO] Logging experiment in directory: {log_root_path}")
     # specify directory for logging runs
-    log_dir = datetime.now().strftime("%b%d_%H-%M-%S")
+    log_dir = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     if experiment_cfg["agent"]["experiment"]["experiment_name"]:
         log_dir += f'_{experiment_cfg["agent"]["experiment"]["experiment_name"]}'
     # set directory into agent config
@@ -92,13 +97,14 @@ def main():
     dump_pickle(os.path.join(log_dir, "params", "agent.pkl"), experiment_cfg)
 
     # create isaac environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless, viewport=args_cli.video)
+    env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
     # wrap for video recording
     if args_cli.video:
         video_kwargs = {
             "video_folder": os.path.join(log_dir, "videos"),
             "step_trigger": lambda step: step % args_cli.video_interval == 0,
             "video_length": args_cli.video_length,
+            "disable_logger": True,
         }
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
@@ -118,13 +124,13 @@ def main():
             observation_space=env.observation_space,
             action_space=env.action_space,
             device=env.device,
-            **convert_skrl_cfg(experiment_cfg["models"]["policy"]),
+            **process_skrl_cfg(experiment_cfg["models"]["policy"]),
         )
         models["value"] = deterministic_model(
             observation_space=env.observation_space,
             action_space=env.action_space,
             device=env.device,
-            **convert_skrl_cfg(experiment_cfg["models"]["value"]),
+            **process_skrl_cfg(experiment_cfg["models"]["value"]),
         )
     # shared models
     else:
@@ -135,8 +141,8 @@ def main():
             structure=None,
             roles=["policy", "value"],
             parameters=[
-                convert_skrl_cfg(experiment_cfg["models"]["policy"]),
-                convert_skrl_cfg(experiment_cfg["models"]["value"]),
+                process_skrl_cfg(experiment_cfg["models"]["policy"]),
+                process_skrl_cfg(experiment_cfg["models"]["value"]),
             ],
         )
         models["value"] = models["policy"]
@@ -150,7 +156,7 @@ def main():
     # https://skrl.readthedocs.io/en/latest/modules/skrl.agents.ppo.html
     agent_cfg = PPO_DEFAULT_CONFIG.copy()
     experiment_cfg["agent"]["rewards_shaper"] = None  # avoid 'dictionary changed size during iteration'
-    agent_cfg.update(convert_skrl_cfg(experiment_cfg["agent"]))
+    agent_cfg.update(process_skrl_cfg(experiment_cfg["agent"]))
 
     agent_cfg["state_preprocessor_kwargs"].update({"size": env.observation_space, "device": env.device})
     agent_cfg["value_preprocessor_kwargs"].update({"size": 1, "device": env.device})
@@ -174,8 +180,16 @@ def main():
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

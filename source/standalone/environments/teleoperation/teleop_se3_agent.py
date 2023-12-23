@@ -1,44 +1,49 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to run a keyboard teleoperation with Orbit manipulation environments."""
 
+from __future__ import annotations
+
 """Launch Isaac Sim Simulator first."""
 
 
 import argparse
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Keyboard teleoperation for Orbit environments.")
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to simulate.")
 parser.add_argument("--device", type=str, default="keyboard", help="Device for interacting with environment")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--sensitivity", type=float, default=1.0, help="Sensitivity factor.")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
-# launch the simulator
-config = {"headless": args_cli.headless}
-simulation_app = SimulationApp(config)
+# launch omniverse app
+app_launcher = AppLauncher(headless=args_cli.headless)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
-import gym
+import gymnasium as gym
 import torch
+import traceback
 
 import carb
 
 from omni.isaac.orbit.devices import Se3Gamepad, Se3Keyboard, Se3SpaceMouse
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils import parse_env_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils import parse_env_cfg
 
 
 def pre_process_actions(delta_pose: torch.Tensor, gripper_command: bool) -> torch.Tensor:
@@ -61,11 +66,10 @@ def main():
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
     # modify configuration
-    env_cfg.control.control_type = "inverse_kinematics"
-    env_cfg.control.inverse_kinematics.command_type = "pose_rel"
-    env_cfg.terminations.episode_timeout = False
+    env_cfg.terminations.time_out = None
+
     # create environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless)
+    env = gym.make(args_cli.task, cfg=env_cfg)
     # check environment name (for reach , we don't allow the gripper)
     if "Reach" in args_cli.task:
         carb.log_warn(
@@ -98,22 +102,30 @@ def main():
 
     # simulate environment
     while simulation_app.is_running():
-        # get keyboard command
-        delta_pose, gripper_command = teleop_interface.advance()
-        # convert to torch
-        delta_pose = torch.tensor(delta_pose, dtype=torch.float, device=env.device).repeat(env.num_envs, 1)
-        # pre-process actions
-        actions = pre_process_actions(delta_pose, gripper_command)
-        # apply actions
-        _, _, _, _ = env.step(actions)
-        # check if simulator is stopped
-        if env.unwrapped.sim.is_stopped():
-            break
+        # run everything in inference mode
+        with torch.inference_mode():
+            # get keyboard command
+            delta_pose, gripper_command = teleop_interface.advance()
+            delta_pose = delta_pose.astype("float32")
+            # convert to torch
+            delta_pose = torch.tensor(delta_pose, device=env.unwrapped.device).repeat(env.unwrapped.num_envs, 1)
+            # pre-process actions
+            actions = pre_process_actions(delta_pose, gripper_command)
+            # apply actions
+            env.step(actions)
 
     # close the simulator
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

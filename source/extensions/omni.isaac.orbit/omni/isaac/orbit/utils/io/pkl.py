@@ -1,8 +1,7 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
-
 
 """Utilities for file I/O with pickle."""
 
@@ -15,13 +14,13 @@ def load_pickle(filename: str) -> Any:
     """Loads an input PKL file safely.
 
     Args:
-        filename (str): The path to pickled file.
+        filename: The path to pickled file.
 
     Raises:
         FileNotFoundError: When the specified file does not exist.
 
     Returns:
-        Any: The data read from the input file.
+        The data read from the input file.
     """
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
@@ -37,8 +36,8 @@ def dump_pickle(filename: str, data: Any):
         The function creates any missing directory along the file's path.
 
     Args:
-        filename (str): The path to save the file at.
-        data (Any): The data to save.
+        filename: The path to save the file at.
+        data: The data to save.
     """
     # check ending
     if not filename.endswith("pkl"):

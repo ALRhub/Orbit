@@ -1,15 +1,15 @@
 Installation Guide
 ===================
 
-.. image:: https://img.shields.io/badge/IsaacSim-2022.2.0-brightgreen.svg
+.. image:: https://img.shields.io/badge/IsaacSim-2023.1.0--hotfix.1-silver.svg
    :target: https://developer.nvidia.com/isaac-sim
-   :alt: IsaacSim 2022.2.0
+   :alt: IsaacSim 2023.1.0
 
-.. image:: https://img.shields.io/badge/python-3.7-blue.svg
-   :target: https://www.python.org/downloads/release/python-370/
-   :alt: Python 3.7
+.. image:: https://img.shields.io/badge/python-3.10-blue.svg
+   :target: https://www.python.org/downloads/release/python-31013/
+   :alt: Python 3.10
 
-.. image:: https://img.shields.io/badge/platform-linux--64-lightgrey.svg
+.. image:: https://img.shields.io/badge/platform-linux--64-orange.svg
    :target: https://releases.ubuntu.com/20.04/
    :alt: Ubuntu 20.04
 
@@ -20,22 +20,26 @@ Installing Isaac Sim
 
 .. caution::
 
-   We have observed a few issues with the Isaac Sim 2022.2.1 release. We recommend using the
-   Isaac Sim 2022.2.0 release. For more information, please check the :doc:`/source/refs/issues` page.
+   While the framework contains some backwards compatibility for Isaac Sim 2022.2.1, we recommend using
+   the latest Isaac Sim 2023.1 release. This release contains various improvements on the
+   simulation side, and is the recommended version to use with Orbit.
+
+   For more information, please refer to the
+   `Isaac Sim release notes <https://docs.omniverse.nvidia.com/isaacsim/latest/release_notes.html>`__.
 
 Downloading pre-built binaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Please follow the Isaac Sim
-`documentation <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_workstation.html>`__
+`documentation <https://docs.omniverse.nvidia.com/isaacsim/latest/installation/install_workstation.html>`__
 to install the latest Isaac Sim release.
 
 To check the minimum system requirements,refer to the documentation
-`here <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/requirements.html>`__.
+`here <https://docs.omniverse.nvidia.com/isaacsim/latest/installation/requirements.html>`__.
 
 .. note::
-	We have tested ORBIT with Isaac Sim 2022.2.0 release on Ubuntu
-	20.04LTS with NVIDIA driver 515.76.
+	We have tested Orbit with Isaac Sim 2023.1.0-hotfix.1 release on Ubuntu
+	20.04LTS with NVIDIA driver 525.147.
 
 Configuring the environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,40 +51,44 @@ a virtual environment following the instructions
 `here <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html>`__.
 
 Please locate the `Python executable in Isaac
-Sim <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html>`__
+Sim <https://docs.omniverse.nvidia.com/isaacsim/latest/manual_standalone_python.html#isaac-sim-python-environment>`__
 by navigating to Isaac Sim root folder. In the remaining of the
 documentation, we will refer to its path as ``ISAACSIM_PYTHON_EXE``.
 
 .. note::
+
 	On Linux systems, by default, this should be the executable ``python.sh`` in the directory
 	``${HOME}/.local/share/ov/pkg/isaac_sim-*``, with ``*`` corresponding to the Isaac Sim version.
 
 To avoid the overhead of finding and locating the Isaac Sim installation
 directory every time, we recommend exporting the following environment
-variables to your ``~/.bashrc`` or ``~/.zshrc`` files:
+variables to your terminal for the remaining of the installation instructions:
 
 .. code:: bash
 
    # Isaac Sim root directory
-   export ISAACSIM_PATH="${HOME}/.local/share/ov/pkg/isaac_sim-2022.2.0"
+   export ISAACSIM_PATH="${HOME}/.local/share/ov/pkg/isaac_sim-2023.1.0-hotfix.1"
    # Isaac Sim python executable
    export ISAACSIM_PYTHON_EXE="${ISAACSIM_PATH}/python.sh"
+
+For more information on common paths, please check the Isaac Sim
+`documentation <https://docs.omniverse.nvidia.com/isaacsim/latest/installation/install_faq.html#common-path-locations>`__.
 
 Running the simulator
 ~~~~~~~~~~~~~~~~~~~~~
 
 Once Isaac Sim is installed successfully, make sure that the simulator runs on your
 system. For this, we encourage the user to try some of the introductory
-tutorials on their `website <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/tutorial_intro_interface.html>`__.
+tutorials on their `website <https://docs.omniverse.nvidia.com/isaacsim/latest/introductory_tutorials/index.html>`__.
 
 For completeness, we specify the commands here to check that everything is configured correctly.
-On a new terminal (**``Ctrl+Alt+T``**), run the following:
+On a new terminal (**Ctrl+Alt+T**), run the following:
 
 -  Check that the simulator runs as expected:
 
    .. code:: bash
 
-      # note: you can pass the argument `--help` to see all arguments possible.
+      # note: you can pass the argument "--help" to see all arguments possible.
       ${ISAACSIM_PATH}/isaac-sim.sh
 
 -  Check that the simulator runs from a standalone python script:
@@ -105,9 +113,10 @@ On a new terminal (**``Ctrl+Alt+T``**), run the following:
 If the simulator does not run or crashes while following the above
 instructions, it means that something is incorrectly configured. To
 debug and troubleshoot, please check Isaac Sim
-`documentation <https://docs.omniverse.nvidia.com/app_isaacsim/prod_kit/linux-troubleshooting.html>`__
+`documentation <https://docs.omniverse.nvidia.com/dev-guide/latest/linux-troubleshooting.html>`__
 and the
-`forums <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/isaac_sim_forums.html>`__.
+`forums <https://docs.omniverse.nvidia.com/isaacsim/latest/isaac_sim_forums.html>`__.
+
 
 Installing Orbit
 ----------------
@@ -153,15 +162,16 @@ utilities to manage extensions:
 
    ./orbit.sh --help
 
-   usage: orbit.sh [-h] [-i] [-e] [-f] [-p] [-s] [-v] [-d] [-c] -- Utility to manage extensions in Orbit.
+   usage: orbit.sh [-h] [-i] [-e] [-f] [-p] [-s] [-o] [-v] [-d] [-c] -- Utility to manage extensions in Orbit.
 
    optional arguments:
       -h, --help           Display the help content.
       -i, --install        Install the extensions inside Isaac Orbit.
-      -e, --extra          Install extra dependencies such as the learning frameworks.
+      -e, --extra [LIB]    Install learning frameworks (rl_games, rsl_rl, sb3) as extra dependencies. Default is 'all'.
       -f, --format         Run pre-commit to format the code and check lints.
       -p, --python         Run the python executable (python.sh) provided by Isaac Sim.
       -s, --sim            Run the simulator executable (isaac-sim.sh) provided by Isaac Sim.
+      -o, --docker         Run the docker container helper script (docker/container.sh).
       -v, --vscode         Generate the VSCode settings file from template.
       -d, --docs           Build the documentation from source using sphinx.
       -c, --conda [NAME]   Create the conda environment for Orbit. Default name is 'orbit'.
@@ -173,11 +183,21 @@ running the following on your terminal:
 
 .. code:: bash
 
-   # note: execute the command from where the `orbit.sh` executable exists
+   # note: execute the command from where the "orbit.sh" executable exists
    # option1: for bash users
    echo -e "alias orbit=$(pwd)/orbit.sh" >> ${HOME}/.bashrc
    # option2: for zshell users
    echo -e "alias orbit=$(pwd)/orbit.sh" >> ${HOME}/.zshrc
+
+After running the above command, don't forget to source your ``.bashrc`` or ``.zshrc`` file:
+
+.. code:: bash
+
+   # option1: for bash users
+   source ${HOME}/.bashrc
+   # option2: for zshell users
+   source ${HOME}/.zshrc
+
 
 Setting up the environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,7 +206,7 @@ The executable ``orbit.sh`` automatically fetches the python bundled with Isaac
 Sim, using ``./orbit.sh -p`` command (unless inside a virtual environment). This executable
 behaves like a python executable, and can be used to run any python script or
 module with the simulator. For more information, please refer to the
-`documentation <https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/install_python.html>`__.
+`documentation <https://docs.omniverse.nvidia.com/isaacsim/latest/manual_standalone_python.html#isaac-sim-python-environment>`__.
 
 Although using a virtual environment is optional, we recommend using ``conda``. To install
 ``conda``, please follow the instructions `here <https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html>`__.
@@ -196,26 +216,22 @@ use the following command:
 .. code:: bash
 
    # Option 1: Default name for conda environment is 'orbit'
-   ./orbit.sh --conda  # or `./orbit.sh -c`
+   ./orbit.sh --conda  # or "./orbit.sh -c"
    # Option 2: Custom name for conda environment
-   ./orbit.sh --conda my_env  # or `./orbit.sh -c my_env`
+   ./orbit.sh --conda my_env  # or "./orbit.sh -c my_env"
 
 If you are using ``conda`` to create a virtual environment, make sure to
 activate the environment before running any scripts. For example:
 
 .. code:: bash
 
-   conda activate orbit  # or `conda activate my_env`
+   conda activate orbit  # or "conda activate my_env"
 
 Once you are in the virtual environment, you do not need to use ``./orbit.sh -p``
-to run python scripts. You can use the default python executable in your environment.
-
-As an example, you can run the following command to check if the virtual environment is
-set up correctly:
-
-.. code:: bash
-
-   python -c "import omni.isaac.orbit; print('Orbit configuration is now complete.')"
+to run python scripts. You can use the default python executable in your environment
+by running ``python`` or ``python3``. However, for the rest of the documentation,
+we will assume that you are using ``./orbit.sh -p`` to run python scripts. This command
+is equivalent to running ``python`` or ``python3`` in your virtual environment.
 
 Building extensions
 ~~~~~~~~~~~~~~~~~~~
@@ -234,11 +250,37 @@ To build all the extensions, run the following commands:
 
    .. code:: bash
 
-      ./orbit.sh --install  # or `./orbit.sh -i`
+      ./orbit.sh --install  # or "./orbit.sh -i"
 
 -  For installing all other dependencies (such as learning
    frameworks), execute:
 
    .. code:: bash
 
-      ./orbit.sh --extra  # or `./orbit.sh -e`
+      # Option 1: Install all dependencies
+      ./orbit.sh --extra  # or "./orbit.sh -e"
+      # Option 2: Install only a subset of dependencies
+      # note: valid options are 'rl_games', 'rsl_rl', 'sb3', 'robomimic', 'all'
+      ./orbit.sh --extra rsl_rl  # or "./orbit.sh -e rsl_r"
+
+
+Verifying the installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To verify that the installation was successful, run the following command from the
+top of the repository:
+
+.. code:: bash
+
+   # Option 1: Using the orbit.sh executable
+   # note: this works for both the bundled python and the virtual environment
+   ./orbit.sh -p source/standalone/tutorials/00_sim/create_empty.py
+
+   # Option 2: Using python in your virtual environment
+   python source/standalone/tutorials/00_sim/create_empty.py
+
+The above command should launch the simulator and display a window with a black
+ground plane. You can exit the script by pressing ``Ctrl+C`` on your terminal or
+by pressing the ``STOP`` button on the simulator window.
+
+If you see this, then the installation was successful! |:tada:|

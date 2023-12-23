@@ -55,22 +55,95 @@ exceeds the size of the buffers, the simulation will fail with an error such as 
 
 .. code:: bash
 
-    PhysX error: the application need to increase the PxgDynamicsMemoryConfig::foundLostPairsCapacity parameter to 3072, otherwise the simulation will miss interactions
+    PhysX error: the application need to increase the PxgDynamicsMemoryConfig::foundLostPairsCapacity
+    parameter to 3072, otherwise the simulation will miss interactions
 
-In this case, you need to increase the size of the buffers passed to the :class:`SimulationContext` class.
-The size of the buffers can be increased by setting the ``found_lost_pairs_capacity`` in the ``sim_params``
-argument to the :class:`SimulationContext` class. For example, to increase the size of the buffers to
-``4096``, you can use the following code:
+In this case, you need to increase the size of the buffers passed to the
+:class:`~omni.isaac.orbit.sim.SimulationContext` class. The size of the buffers can be increased by setting
+the :attr:`~omni.isaac.orbit.sim.PhysxCfg.gpu_found_lost_pairs_capacity` parameter in the
+:class:`~omni.isaac.orbit.sim.PhysxCfg` class. For example, to increase the size of the buffers to
+4096, you can use the following code:
 
 .. code:: python
 
-    from omni.isaac.core.simulation_context import SimulationContext
+    import omni.isaac.orbit.sim as sim_utils
 
-    sim = SimulationContext(sim_params={"gpu_found_lost_pairs_capacity": 4096})
+    sim_cfg = sim_utils.SimulationConfig()
+    sim_cfg.physx.gpu_found_lost_pairs_capacity = 4096
+    sim = SimulationContext(sim_params=sim_cfg)
 
-These settings are also directly exposed through the :class:`PhysxCfg` class in the ``omni.isaac.orbit_envs``
-extension, which can be used to configure the simulation engine. Please see the documentation for
-:class:`PhysxCfg` for more details.
+Please see the documentation for :class:`~omni.isaac.orbit.sim.SimulationCfg` for more details
+on the parameters that can be used to configure the simulation.
+
+
+Preventing memory leaks in the simulator
+----------------------------------------
+
+Memory leaks in the Isaac Sim simulator can occur when C++ callbacks are registered with Python objects.
+This happens when callback functions within classes maintain references to the Python objects they are
+associated with. As a result, Python's garbage collection is unable to reclaim memory associated with
+these objects, preventing the corresponding C++ objects from being destroyed. Over time, this can lead
+to memory leaks and increased resource usage.
+
+To prevent memory leaks in the Isaac Sim simulator, it is essential to use weak references when registering
+callbacks with the simulator. This ensures that Python objects can be garbage collected when they are no
+longer needed, thereby avoiding memory leaks. The `weakref <https://docs.python.org/3/library/weakref.html>`_
+module from the Python standard library can be employed for this purpose.
+
+
+For example, consider a class with a callback function ``on_event_callback`` that needs to be registered
+with the simulator. If you use a strong reference to the ``MyClass`` object when passing the callback,
+the reference count of the ``MyClass`` object will be incremented. This prevents the ``MyClass`` object
+from being garbage collected when it is no longer needed, i.e., the ``__del__`` destructor will not be
+called.
+
+.. code:: python
+
+    import omni.kit
+
+    class MyClass:
+        def __init__(self):
+            app_interface = omni.kit.app.get_app_interface()
+            self._handle = app_interface.get_post_update_event_stream().create_subscription_to_pop(
+                self.on_event_callback
+            )
+
+        def __del__(self):
+            self._handle.unsubscribe()
+            self._handle = None
+
+        def on_event_callback(self, event):
+            # do something with the message
+
+
+To fix this issue, it's crucial to employ weak references when registering the callback. While this approach
+adds some verbosity to the code, it ensures that the ``MyClass`` object can be garbage collected when no longer
+in use. Here's the modified code:
+
+.. code:: python
+
+    import omni.kit
+    import weakref
+
+    class MyClass:
+        def __init__(self):
+            app_interface = omni.kit.app.get_app_interface()
+            self._handle = app_interface.get_post_update_event_stream().create_subscription_to_pop(
+                lambda event, obj=weakref.proxy(self): obj.on_event_callback(event)
+            )
+
+        def __del__(self):
+            self._handle.unsubscribe()
+            self._handle = None
+
+        def on_event_callback(self, event):
+            # do something with the message
+
+
+In this revised code, the weak reference ``weakref.proxy(self)`` is used when registering the callback,
+allowing the ``MyClass`` object to be properly garbage collected.
+
+By following this pattern, you can prevent memory leaks and maintain a more efficient and stable simulation.
 
 
 Understanding the error logs from crashes

@@ -1,47 +1,54 @@
-# Copyright (c) 2022, NVIDIA CORPORATION & AFFILIATES, ETH Zurich, and University of Toronto
+# Copyright (c) 2022-2023, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Script to collect demonstrations with Isaac Orbit environments."""
+"""Script to collect demonstrations with Orbit environments."""
+
+from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
 
 import argparse
 
-from omni.isaac.kit import SimulationApp
+from omni.isaac.orbit.app import AppLauncher
 
 # add argparse arguments
-parser = argparse.ArgumentParser("Welcome to Orbit: Omniverse Robotics Environments!")
-parser.add_argument("--headless", action="store_true", default=False, help="Force display off at all times.")
+parser = argparse.ArgumentParser(description="Collect demonstrations for Orbit environments.")
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--num_envs", type=int, default=1, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument("--device", type=str, default="keyboard", help="Device for interacting with environment")
 parser.add_argument("--num_demos", type=int, default=1, help="Number of episodes to store in the dataset.")
 parser.add_argument("--filename", type=str, default="hdf_dataset", help="Basename of output file.")
+# append AppLauncher cli args
+AppLauncher.add_app_launcher_args(parser)
+# parse the arguments
 args_cli = parser.parse_args()
 
 # launch the simulator
-config = {"headless": args_cli.headless}
-simulation_app = SimulationApp(config)
+app_launcher = AppLauncher(args_cli)
+simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
 
 import contextlib
-import gym
+import gymnasium as gym
 import os
 import torch
+import traceback
+
+import carb
 
 from omni.isaac.orbit.devices import Se3Keyboard, Se3SpaceMouse
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_envs  # noqa: F401
-import omni.isaac.orbit_envs  # noqa: F401
-from omni.isaac.orbit_envs.utils.data_collector import RobomimicDataCollector
-from omni.isaac.orbit_envs.utils.parse_cfg import parse_env_cfg
+import omni.isaac.contrib_tasks  # noqa: F401
+import omni.isaac.orbit_tasks  # noqa: F401
+from omni.isaac.orbit_tasks.utils.data_collector import RobomimicDataCollector
+from omni.isaac.orbit_tasks.utils.parse_cfg import parse_env_cfg
 
 
 def pre_process_actions(delta_pose: torch.Tensor, gripper_command: bool) -> torch.Tensor:
@@ -71,7 +78,7 @@ def main():
     env_cfg.observations.return_dict_obs_in_group = True
 
     # create environment
-    env = gym.make(args_cli.task, cfg=env_cfg, headless=args_cli.headless)
+    env = gym.make(args_cli.task, cfg=env_cfg)
 
     # create controller
     if args_cli.device.lower() == "keyboard":
@@ -109,8 +116,8 @@ def main():
     teleop_interface.reset()
     collector_interface.reset()
 
-    # simulate environment
-    with contextlib.suppress(KeyboardInterrupt):
+    # simulate environment -- run everything in inference mode
+    with contextlib.suppress(KeyboardInterrupt) and torch.inference_mode():
         while not collector_interface.is_stopped():
             # get keyboard command
             delta_pose, gripper_command = teleop_interface.advance()
@@ -128,7 +135,8 @@ def main():
             # -- actions
             collector_interface.add("actions", actions)
             # perform action on environment
-            obs_dict, rewards, dones, info = env.step(actions)
+            obs_dict, rewards, terminated, truncated, info = env.step(actions)
+            dones = terminated | truncated
             # check that simulation is stopped or not
             if env.unwrapped.sim.is_stopped():
                 break
@@ -147,7 +155,8 @@ def main():
                 collector_interface.add("success", info["is_success"])
             except KeyError:
                 raise RuntimeError(
-                    f"Only goal-conditioned environment supported. No attribute named 'is_success' found in {list(info.keys())}."
+                    "Only goal-conditioned environment supported. No attribute named"
+                    f" 'is_success' found in {list(info.keys())}."
                 )
             # flush data from collector for successful environments
             reset_env_ids = dones.nonzero(as_tuple=False).squeeze(-1)
@@ -156,8 +165,16 @@ def main():
     # close the simulator
     collector_interface.close()
     env.close()
-    simulation_app.close()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        # run the main execution
+        main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()
