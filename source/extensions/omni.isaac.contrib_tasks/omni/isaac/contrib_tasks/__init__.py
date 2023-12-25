@@ -42,3 +42,14 @@ ORBIT_CONTRIB_TASKS_METADATA = toml.load(os.path.join(ORBIT_CONTRIB_TASKS_EXT_DI
 
 # Configure the module-level variables
 __version__ = ORBIT_CONTRIB_TASKS_METADATA["package"]["version"]
+
+##
+# Register Gym environments.
+##
+
+from omni.isaac.orbit_tasks.utils import import_packages
+
+# The blacklist is used to prevent importing configs from sub-packages
+_BLACKLIST_PKGS = ["utils"]
+# Import all configs in this package
+import_packages(__name__, _BLACKLIST_PKGS)
