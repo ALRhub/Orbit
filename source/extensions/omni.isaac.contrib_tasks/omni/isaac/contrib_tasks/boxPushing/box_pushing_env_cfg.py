@@ -94,7 +94,6 @@ class ActionsCfg:
 
     # will be set by agent env cfg
     body_joint_pos: mdp.JointPositionActionCfg = MISSING
-    finger_joint_pos: mdp.BinaryJointPositionActionCfg = MISSING
 
 
 @configclass

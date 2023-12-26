@@ -34,13 +34,6 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
         self.actions.body_joint_pos = mdp.JointPositionActionCfg(
             asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True
         )
-        self.actions.finger_joint_pos = mdp.BinaryJointPositionActionCfg(
-            asset_name="robot",
-            joint_names=["panda_finger.*"],
-            open_command_expr={"panda_finger_.*": 0.04},
-            close_command_expr={"panda_finger_.*": 0.0},
-        )
-        # Set the body name for the end effector
         self.commands.object_pose.body_name = "panda_hand"
 
         # Set Cube as object
