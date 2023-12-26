@@ -20,7 +20,7 @@ import os
 # Pre-defined configs
 ##
 from omni.isaac.orbit.markers.config import FRAME_MARKER_CFG  # isort: skip
-from omni.isaac.orbit_assets.franka import FRANKA_PANDA_CFG  # isort: skip
+from omni.isaac.contrib_tasks.boxPushing.assets.franka import FRANKA_PANDA_CFG  # isort: skip
 
 
 @configclass

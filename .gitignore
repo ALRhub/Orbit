@@ -7,11 +7,6 @@
 **/*.dmp
 **/.thumbs
 
-# No binary USD files allowed in the repo
-**/*.usd
-**/*.usdc
-**/*.usdz
-
 # Python
 .DS_Store
 **/*.egg-info/
