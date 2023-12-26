@@ -7,9 +7,8 @@
 **/*.dmp
 **/.thumbs
 
-# No USD files allowed in the repo
+# No binary USD files allowed in the repo
 **/*.usd
-**/*.usda
 **/*.usdc
 **/*.usdz
 
