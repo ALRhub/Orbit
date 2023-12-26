@@ -151,9 +151,9 @@ class RewardsCfg:
     # action penalty
     energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-4)
 
-    joint_position = RewTerm(fun=mdp.joint_pos_limits, weight=-1.0)
+    joint_position = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
-    joint_velocity = RewTerm(fun=mdp.joint_vel_limits, weight=-1.0)
+    joint_velocity = RewTerm(func=mdp.joint_vel_limits, params={"soft_ratio": 1.0}, weight=-1.0)
 
 
 @configclass
@@ -170,7 +170,7 @@ class TerminationsCfg:
 
 
 @configclass
-class LiftEnvCfg(RLTaskEnvCfg):
+class BoxPushingEnvCfg(RLTaskEnvCfg):
     """Configuration for the lifting environment."""
 
     # Scene settings

@@ -12,7 +12,7 @@ from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
-from omni.isaac.orbit_tasks.manipulation.lift.lift_env_cfg import LiftEnvCfg
+from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg
 
 ##
 # Pre-defined configs
@@ -22,7 +22,7 @@ from omni.isaac.orbit_assets.franka import FRANKA_PANDA_CFG  # isort: skip
 
 
 @configclass
-class FrankaBoxPushingEnvCfg(LiftEnvCfg):
+class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
     def __post_init__(self):
         # post init of parent
         super().__post_init__()

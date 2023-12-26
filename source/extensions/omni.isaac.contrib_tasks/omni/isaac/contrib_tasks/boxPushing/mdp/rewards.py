@@ -8,7 +8,7 @@ from __future__ import annotations
 import torch
 from typing import TYPE_CHECKING
 
-from omni.isaac.orbit.assets import RigidObject
+from omni.isaac.orbit.assets import RigidObject, Articulation
 from omni.isaac.orbit.managers import SceneEntityCfg
 from omni.isaac.orbit.sensors import FrameTransformer
 from omni.isaac.orbit.utils.math import combine_frame_transforms
@@ -54,3 +54,21 @@ def object_goal_distance(
     distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
     # rewarded if the object is lifted above the threshold
     return distance
+
+
+# TODO somehow asset_cfg.joint_ids is None so has to be replaced with :
+def joint_pos_limits_bp(env: RLTaskEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Penalize joint positions if they cross the soft limits.
+
+    This is computed as a sum of the absolute value of the difference between the joint position and the soft limits.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    # compute out of limits constraints
+    out_of_limits = -(
+        asset.data.joint_pos[:, :] - asset.data.soft_joint_pos_limits[:, :, 0]
+    ).clip(max=0.0)
+    out_of_limits += (
+        asset.data.joint_pos[:, :] - asset.data.soft_joint_pos_limits[:, :, 1]
+    ).clip(min=0.0)
+    return torch.sum(out_of_limits, dim=1)
