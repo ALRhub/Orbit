@@ -14,6 +14,8 @@ from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
 from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg
 
+import os
+
 ##
 # Pre-defined configs
 ##
@@ -41,8 +43,8 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
             prim_path="{ENV_REGEX_NS}/Object",
             init_state=RigidObjectCfg.InitialStateCfg(pos=[0.5, 0, 0.055], rot=[1, 0, 0, 0]),
             spawn=UsdFileCfg(
-                usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Blocks/DexCube/dex_cube_instanceable.usd",
-                scale=(0.8, 0.8, 0.8),
+                usd_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../assets/box.usda"),
+                scale=(0.001, 0.001, 0.001),
                 rigid_props=RigidBodyPropertiesCfg(
                     solver_position_iteration_count=16,
                     solver_velocity_iteration_count=1,
