@@ -69,7 +69,7 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
                     prim_path="{ENV_REGEX_NS}/Robot/panda_hand",
                     name="end_effector",
                     offset=OffsetCfg(
-                        pos=[0.0, 0.0, 0.1034],
+                        pos=[0.0, 0.0, 0.20],
                     ),
                 ),
             ],
