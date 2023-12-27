@@ -152,7 +152,7 @@ class RewardsCfg:
 
     joint_position = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
-    joint_velocity = RewTerm(func=mdp.joint_vel_limits, params={"soft_ratio": 1.0}, weight=-1.0)
+    # joint_velocity = RewTerm(func=mdp.joint_vel_limits, params={"soft_ratio": 1.0}, weight=-1.0)
 
 
 @configclass
@@ -198,5 +198,5 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
         self.sim.physx.bounce_threshold_velocity = 0.2
         self.sim.physx.bounce_threshold_velocity = 0.01
         self.sim.physx.gpu_found_lost_aggregate_pairs_capacity = 1024 * 1024 * 4
-        self.sim.physx.gpu_total_aggregate_pairs_capacity = 16 * 1024
+        self.sim.physx.gpu_total_aggregate_pairs_capacity = 30 * 1024
         self.sim.physx.friction_correlation_distance = 0.00625
