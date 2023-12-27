@@ -72,3 +72,23 @@ def joint_pos_limits_bp(env: RLTaskEnv, asset_cfg: SceneEntityCfg = SceneEntityC
         asset.data.joint_pos[:, :] - asset.data.soft_joint_pos_limits[:, :, 1]
     ).clip(min=0.0)
     return torch.sum(out_of_limits, dim=1)
+
+def joint_vel_limits_bp(
+    env: RLTaskEnv, soft_ratio: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+) -> torch.Tensor:
+    """Penalize joint velocities if they cross the soft limits.
+
+    This is computed as a sum of the absolute value of the difference between the joint velocity and the soft limits.
+
+    Args:
+        soft_ratio: The ratio of the soft limits to be used.
+    """
+    # extract the used quantities (to enable type-hinting)
+    asset: Articulation = env.scene[asset_cfg.name]
+    # max joint velocities
+    arm_dof_vel_max = torch.tensor([2.1750, 2.1750, 2.1750, 2.1750, 2.6100, 2.6100, 2.6100], device=env.device)
+    # compute out of limits constraints
+    out_of_limits = torch.abs(asset.data.joint_vel[:,:7]) - arm_dof_vel_max * soft_ratio
+    # clip to max error = 1 rad/s per joint to avoid huge penalties
+    out_of_limits = out_of_limits.clip_(min=0.0, max=1.0)
+    return torch.sum(out_of_limits, dim=1)

@@ -152,7 +152,7 @@ class RewardsCfg:
 
     joint_position = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
-    # joint_velocity = RewTerm(func=mdp.joint_vel_limits, params={"soft_ratio": 1.0}, weight=-1.0)
+    joint_velocity = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
 
 
 @configclass
