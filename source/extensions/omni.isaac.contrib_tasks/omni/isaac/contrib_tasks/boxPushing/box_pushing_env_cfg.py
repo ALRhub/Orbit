@@ -83,7 +83,7 @@ class CommandsCfg:
         resampling_time_range=(5.0, 5.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.4, 0.6), pos_y=(-0.25, 0.25), pos_z=(0.055, 0.055), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
+            pos_x=(0.4, 0.6), pos_y=(-0.25, 0.25), pos_z=(0.007, 0.007), roll=(0.0, 0.0), pitch=(0.0, 0.0), yaw=(0.0, 0.0)
         ),
     )
 
@@ -148,7 +148,7 @@ class RewardsCfg:
     )
 
     # action penalty
-    energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-4)
+    energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)
 
     joint_position = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
