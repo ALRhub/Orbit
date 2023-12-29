@@ -161,6 +161,7 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
+    success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose"})
 
 
 ##
