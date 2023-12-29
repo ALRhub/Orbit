@@ -3,18 +3,17 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
+import os
+
 from omni.isaac.orbit.assets import RigidObjectCfg
 from omni.isaac.orbit.sensors import FrameTransformerCfg
 from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import OffsetCfg
 from omni.isaac.orbit.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import UsdFileCfg
 from omni.isaac.orbit.utils import configclass
-from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 
-from omni.isaac.orbit_tasks.manipulation.lift import mdp
 from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg
-
-import os
+from omni.isaac.orbit_tasks.manipulation.lift import mdp
 
 ##
 # Pre-defined configs
