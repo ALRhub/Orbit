@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -58,9 +58,6 @@ import omni.isaac.orbit.sim as sim_utils
 from omni.isaac.orbit.sensors.camera import Camera, CameraCfg
 from omni.isaac.orbit.utils import convert_dict_to_backend
 from omni.isaac.orbit.utils.math import project_points, transform_points, unproject_depth
-
-# Acquire draw interface
-draw_interface = omni_debug_draw.acquire_debug_draw_interface()
 
 
 def define_sensor() -> Camera:
@@ -137,6 +134,9 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
     # Create replicator writer
     output_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), "output", "camera")
     rep_writer = rep.BasicWriter(output_dir=output_dir, frame_padding=3)
+
+    # Acquire draw interface
+    draw_interface = omni_debug_draw.acquire_debug_draw_interface()
 
     # Set pose: There are two ways to set the pose of the camera.
     # -- Option-1: Set pose using view

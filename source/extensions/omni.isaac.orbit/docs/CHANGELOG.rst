@@ -1,6 +1,40 @@
 Changelog
 ---------
 
+0.10.12 (2024-01-10)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed indexing of source and target frames in the :class:`omni.isaac.orbit.sensors.FrameTransformer` class.
+  Earlier, it always assumed that the source frame body is at index 0. Now, it uses the body index of the
+  source frame to compute the transformation.
+
+Deprecated
+^^^^^^^^^^
+
+* Renamed quantities in the :class:`omni.isaac.orbit.sensors.FrameTransformerData` class to be more
+  consistent with the terminology used in the asset classes. The following quantities are deprecated:
+
+  * ``target_rot_w`` -> ``target_quat_w``
+  * ``source_rot_w`` -> ``source_quat_w``
+  * ``target_rot_source`` -> ``target_quat_source``
+
+
+0.10.11 (2024-01-08)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed attribute error raised when calling the :class:`omni.isaac.orbit.envs.mdp.TerrainBasedPositionCommand`
+  command term.
+* Added a dummy function in :class:`omni.isaac.orbit.terrain.TerrainImporter` that returns environment
+  origins as terrain-aware sampled targets. This function should be implemented by child classes based on
+  the terrain type.
+
+
 0.10.10 (2023-12-21)
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -10,6 +44,7 @@ Fixed
 * Fixed reliance on non-existent ``Viewport`` in :class:`omni.isaac.orbit.sim.SimulationContext` when loading livestreaming
   by ensuring that the extension ``omni.kit.viewport.window`` is enabled in :class:`omni.isaac.orbit.app.AppLauncher` when
   livestreaming is enabled
+
 
 0.10.9 (2023-12-21)
 ~~~~~~~~~~~~~~~~~~~
