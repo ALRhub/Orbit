@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -245,7 +245,7 @@ class SimulationCfg:
     """
 
     device: str = "cuda:0"
-    """The device for running the simulation/environment. Default is "cuda:0"."""
+    """The device for running the simulation/environment. Default is ``"cuda:0"``."""
 
     physx: PhysxCfg = PhysxCfg()
     """PhysX solver settings. Default is PhysxCfg()."""
