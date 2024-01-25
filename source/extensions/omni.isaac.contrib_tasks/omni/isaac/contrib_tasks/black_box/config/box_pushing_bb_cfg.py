@@ -4,15 +4,15 @@ import numpy as np
 
 from typing import Union, Tuple
 
+import gym
 from omni.isaac.orbit.utils import configclass
-from omni.isaac.contrib_tasks.black_box.black_box_wrapper import BlackBoxWrapper
 
 # TODO just pasted the code from fancy_gym but already changed the class
 # ned to adapt the class to finalize the initialization
 
 
 @configclass
-class BoxPushingBB(BlackBoxWrapper):
+class MPWrapper(gym.Wrapper):
 
     #TODO out init of the super obj and of the configs
     mp_config = {
