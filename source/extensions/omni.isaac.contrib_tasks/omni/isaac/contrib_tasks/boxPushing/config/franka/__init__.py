@@ -39,7 +39,7 @@ gym.register(
 
 fancy_gym_registry.upgrade(
     id="Isaac-Box-Pushing-Franka-v0",
-    mp_wrapper=joint_pos_env_cfg.BlackBoxPushBoxFrankaWrapper,
+    mp_wrapper=joint_pos_env_cfg.FrankaBoxPushingMPWrapper,
 )
 
 ##

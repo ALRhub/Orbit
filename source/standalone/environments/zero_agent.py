@@ -46,7 +46,7 @@ def main():
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
     # create environment
-    env = gym.make(args_cli.task, cfg=env_cfg)
+    env = gym.make("gym_ProDMP/" + args_cli.task, cfg=env_cfg)
 
     # print info (this is vectorized environment)
     print(f"[INFO]: Gym observation space: {env.observation_space}")

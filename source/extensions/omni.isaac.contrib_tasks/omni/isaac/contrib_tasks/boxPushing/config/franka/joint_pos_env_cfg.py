@@ -5,6 +5,12 @@
 
 import os
 
+import numpy as np
+
+from typing import Union, Tuple
+from omni.isaac.orbit.utils import configclass
+from fancy_gym.black_box.raw_interface_wrapper import RawInterfaceWrapper
+
 from omni.isaac.orbit.assets import RigidObjectCfg
 from omni.isaac.orbit.sensors import FrameTransformerCfg
 from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import OffsetCfg
@@ -85,3 +91,59 @@ class FrankaBoxPushingEnvCfg_PLAY(FrankaBoxPushingEnvCfg):
         self.scene.env_spacing = 2.5
         # disable randomization for play
         self.observations.policy.enable_corruption = False
+
+
+class FrankaBoxPushingMPWrapper(RawInterfaceWrapper):
+    mp_config = {
+        'ProMP': {
+            'controller_kwargs': {
+                'p_gains': 0.01 * np.array([120., 120., 120., 120., 50., 30., 10.]),
+                'd_gains': 0.01 * np.array([10., 10., 10., 10., 6., 5., 3.]),
+            },
+            'basis_generator_kwargs': {
+                'basis_bandwidth_factor': 2  # 3.5, 4 to try
+            }
+        },
+        'DMP': {},
+        'ProDMP': {
+            'controller_kwargs': {
+                'p_gains': 0.01 * np.array([120., 120., 120., 120., 50., 30., 10.]),
+                'd_gains': 0.01 * np.array([10., 10., 10., 10., 6., 5., 3.]),
+            },
+            'basis_generator_kwargs': {
+                'basis_bandwidth_factor': 2  # 3.5, 4 to try
+            }
+        },
+    }
+
+    # Random x goal + random init pos
+    @property
+    def context_mask(self):
+        if self.random_init:
+            return np.hstack([
+                [True] * 7,  # joints position
+                [False] * 7,  # joints velocity
+                [True] * 3,  # position of box
+                [True] * 4,  # orientation of box
+                [True] * 3,  # position of target
+                [True] * 4,  # orientation of target
+                # [True] * 1,  # time
+            ])
+
+        return np.hstack([
+            [False] * 7,  # joints position
+            [False] * 7,  # joints velocity
+            [False] * 3,  # position of box
+            [False] * 4,  # orientation of box
+            [True] * 3,  # position of target
+            [True] * 4,  # orientation of target
+            # [True] * 1,  # time
+        ])
+
+    @property
+    def current_pos(self) -> Union[float, int, np.ndarray, Tuple]:
+        return self.data.qpos[:7].copy()
+
+    @property
+    def current_vel(self) -> Union[float, int, np.ndarray, Tuple]:
+        return self.data.qvel[:7].copy()
