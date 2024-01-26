@@ -13,10 +13,6 @@ from omni.isaac.contrib_tasks.black_box.black_box_wrapper import BlackBoxWrapper
 # Register Gym environments.
 ##
 
-##
-# Joint Position Control
-##
-
 gym.register(
     id="Isaac-BB-Push-Box-Franka-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",

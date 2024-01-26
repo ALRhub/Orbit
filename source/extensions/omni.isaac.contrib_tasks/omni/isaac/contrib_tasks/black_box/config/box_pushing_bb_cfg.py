@@ -8,13 +8,11 @@ import gym
 from omni.isaac.orbit.utils import configclass
 
 # TODO just pasted the code from fancy_gym but already changed the class
-# ned to adapt the class to finalize the initialization
 
 
 @configclass
 class MPWrapper(gym.Wrapper):
 
-    #TODO out init of the super obj and of the configs
     mp_config = {
         'ProMP': {
             'controller_kwargs': {
