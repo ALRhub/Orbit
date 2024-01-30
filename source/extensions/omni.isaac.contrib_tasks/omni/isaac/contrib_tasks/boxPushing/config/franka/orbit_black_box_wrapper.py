@@ -23,7 +23,7 @@ class OrbitBlackBoxWrapper(RawInterfaceWrapper):
 
     @property
     def observation_space(self):
-        if self.env.observation_space is gym.spaces.Dict:
+        if type(self.env.observation_space) == gym.spaces.Dict:
             key = list(self.env.observation_space.spaces.keys())[0]
             observation_space = self.env.observation_space[key]
         return gym.spaces.Box(
