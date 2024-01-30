@@ -1,8 +1,28 @@
 Changelog
 ---------
 
+0.10.16 (2024-01-29)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^^
+
+* Added an offset parameter to the height scan observation term. This allows the user to specify the
+  height offset of the scan from the tracked body. Previously it was hard-coded to be 0.5.
+
+
+0.10.15 (2024-01-29)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed joint torque computation for implicit actuators. Earlier, the torque was always zero for implicit
+  actuators. Now, it is computed approximately by applying the PD law.
+
+
 0.10.14 (2024-01-22)
-~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~
 
 Fixed
 ^^^^^
