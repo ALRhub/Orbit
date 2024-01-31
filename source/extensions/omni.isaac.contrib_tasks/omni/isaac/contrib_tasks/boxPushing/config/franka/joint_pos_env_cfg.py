@@ -124,13 +124,13 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
     def context_mask(self):
         return np.hstack([
             [True] * 7,  # joints position
-            [False] * 7,  # joints velocity
-            [True] * 3,  # position of box
-            [True] * 4,  # orientation of box
-            [True] * 3,  # position of target
-            [True] * 4,  # orientation of target
-            # [True] * 1,  # time
-            [True] * 7   # TODO wtf?
+            [True] * 7,  # joints velocity
+            # [True] * 3,  # position of box TODO should be !!!
+            # [True] * 3,  # position of target TODO should be !!!
+            [True] * 7,  # position of box
+            [True] * 7,  # position of target
+            [True] * 7,  # actions
+            # [True] * 8   # TODO wtf?
         ])
 
     @property

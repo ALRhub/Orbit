@@ -65,7 +65,8 @@ class RslRlVecEnvWrapper(VecEnv):
         self.num_envs = self.unwrapped.num_envs
         self.device = self.unwrapped.device
         self.max_episode_length = self.unwrapped.max_episode_length
-        self.num_actions = self.unwrapped.action_manager.total_action_dim
+        # self.num_actions = self.unwrapped.action_manager.total_action_dim
+        self.num_actions = self.action_space.shape[-1]  # or sth similar
         self.num_obs = self.unwrapped.observation_manager.group_obs_dim["policy"][0]
         # -- privileged observations
         if "critic" in self.unwrapped.observation_manager.group_obs_dim:
@@ -158,15 +159,13 @@ class RslRlVecEnvWrapper(VecEnv):
 
     def step(self, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         # record step information
-        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        obs, rew, terminated, truncated, extras = self.env.step(actions)
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
-        obs = obs_dict["policy"]
-        extras["observations"] = obs_dict
+        extras["observations"] = {"policy": obs}
         # move time out information to the extras dict
         extras["time_outs"] = truncated
-
         # return the step information
         return obs, rew, dones, extras
 
