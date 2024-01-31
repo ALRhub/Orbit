@@ -4,6 +4,12 @@ from fancy_gym.black_box.raw_interface_wrapper import RawInterfaceWrapper
 
 
 class OrbitBlackBoxWrapper(RawInterfaceWrapper):
+
+    def __init__(self, env):
+        super().__init__(env)
+        if self.env.spec.max_episode_steps is None:
+            self.env.spec.max_episode_steps = self.env.unwrapped.max_episode_length
+
     mp_config = {
         "ProDMP": {
             "phase_generator_kwargs": {
