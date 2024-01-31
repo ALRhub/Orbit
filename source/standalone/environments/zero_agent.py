@@ -19,6 +19,8 @@ parser = argparse.ArgumentParser(description="Zero agent for Orbit environments.
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+parser.add_argument("--motion_primitive", type=str, default=None, help="Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP, etc...")
+
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
 # parse the arguments
@@ -46,7 +48,10 @@ def main():
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
     # create environment
-    env = gym.make("gym_ProDMP/" + args_cli.task, cfg=env_cfg)
+    task_name = args_cli.task
+    if args_cli.motion_primitive is not None:
+        task_name = "gym_" + args_cli.motion_primitive + "/" + task_name
+    env = gym.make(task_name, cfg=env_cfg)
 
     # print info (this is vectorized environment)
     print(f"[INFO]: Gym observation space: {env.observation_space}")
@@ -58,7 +63,8 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # compute zero actions
-            actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
+            actions = torch.zeros((args_cli.num_envs, env.action_space.shape[0]), device=env.unwrapped.device)
+            # actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
             # apply actions
             env.step(actions)
 
