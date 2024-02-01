@@ -130,15 +130,15 @@ class RandomizationCfg:
 
     reset_all = RandTerm(func=mdp.reset_scene_to_default, mode="reset")
 
-    reset_object_position = RandTerm(
-        func=mdp.reset_root_state_uniform,
-        mode="reset",
-        params={
-            "pose_range": {"x": (-0.0, 0.0), "y": (-0.0, 0.0), "z": (0.0, 0.0)},
-            "velocity_range": {},
-            "asset_cfg": SceneEntityCfg("object", body_names="Object"),
-        },
-    )
+    # reset_object_position = RandTerm(
+    #     func=mdp.reset_root_state_uniform,
+    #     mode="reset",
+    #     params={
+    #         "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+    #         "velocity_range": {},
+    #         "asset_cfg": SceneEntityCfg("object", body_names="Object"),
+    #     },
+    # )
 
 
 @configclass
@@ -198,7 +198,7 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
 
         # general settings
         # TODO set max steps in some config file and set the value correctly
-        max_steps = 500
+        max_steps = 200
         self.decimation = 2
         self.episode_length_s = max_steps * self.sim.dt
 
