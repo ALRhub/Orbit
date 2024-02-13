@@ -116,6 +116,7 @@ The following snippet shows how use the :class:`AppLauncher` in different ways:
 .. _`Native Livestream`: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/manual_livestream_clients.html#isaac-sim-setup-kit-remote
 .. _`Websocket Livestream`: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/manual_livestream_clients.html#isaac-sim-setup-livestream-webrtc
 .. _`WebRTC Livestream`: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/manual_livestream_clients.html#isaac-sim-setup-livestream-websocket
+
 """
 
 from __future__ import annotations
@@ -125,8 +126,7 @@ import faulthandler
 import os
 import re
 import sys
-from typing import Any
-from typing_extensions import Literal
+from typing import Any, Literal
 
 from omni.isaac.kit import SimulationApp
 
@@ -610,6 +610,8 @@ class AppLauncher:
                 enable_extension("omni.services.streamclient.webrtc")
             else:
                 raise ValueError(f"Invalid value for livestream: {self._livestream}. Expected: 1, 2, 3 .")
+        else:
+            carb_settings_iface.set_bool("/app/livestream/enabled", False)
 
         # As of IsaacSim 2022.1.1, the ros extension has to be loaded
         # after the streaming extension or it will cause a segfault
