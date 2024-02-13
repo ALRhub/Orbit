@@ -43,6 +43,10 @@ For simplicity, we recommend that an SSH connection is set up between the local
 development machine and the cluster. Such a connection will simplify the file transfer and prevent
 the user cluster password from being requested multiple times.
 
+.. attention::
+  The workflow has been tested with ``apptainer version 1.2.5-1.el7``. There have been reported binding issues with
+  previous versions (such as ``apptainer version 1.1.3-1.el7``). Please ensure that you are using the latest version.
+
 Configuring the cluster parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -136,7 +140,7 @@ ANYmal rough terrain locomotion training can be executed with the following comm
 
 .. code:: bash
 
-    ./docker/container.sh job ./docker/container.sh job --task Isaac-Velocity-Rough-Anymal-C-v0 --headless --video --offscreen_render
+    ./docker/container.sh job --task Isaac-Velocity-Rough-Anymal-C-v0 --headless --video --offscreen_render
 
 The above will, in addition, also render videos of the training progress and store them under ``orbit/logs`` directory.
 

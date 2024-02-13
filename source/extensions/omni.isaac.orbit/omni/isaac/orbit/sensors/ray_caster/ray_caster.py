@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -261,6 +261,7 @@ class RayCaster(SensorBase):
         self._data.ray_hits_w[env_ids] = raycast_mesh(
             ray_starts_w,
             ray_directions_w,
+            max_dist=self.cfg.max_distance,
             mesh=RayCaster.meshes[self.cfg.mesh_prim_paths[0]],
         )[0]
 
