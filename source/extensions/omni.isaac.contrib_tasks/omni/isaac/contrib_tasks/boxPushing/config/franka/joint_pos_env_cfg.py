@@ -1,34 +1,28 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-import os
-
-from omni.isaac.contrib_tasks.boxPushing.config.franka import orbit_black_box_wrapper
-
 import numpy as np
-
+import os
 import torch
 
-from omni.isaac.orbit.utils import configclass
-
-from omni.isaac.orbit.assets import RigidObjectCfg
+from omni.isaac.orbit.assets import Articulation, RigidObjectCfg
 from omni.isaac.orbit.sensors import FrameTransformerCfg
 from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import OffsetCfg
 from omni.isaac.orbit.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import UsdFileCfg
+from omni.isaac.orbit.utils import configclass
 
+from omni.isaac.contrib_tasks.boxPushing.assets.franka import FRANKA_PANDA_CFG  # isort: skip
 from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg
+from omni.isaac.contrib_tasks.boxPushing.config.franka import orbit_black_box_wrapper
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
-
-from omni.isaac.orbit.assets import Articulation
 
 ##
 # Pre-defined configs
 ##
 from omni.isaac.orbit.markers.config import FRAME_MARKER_CFG  # isort: skip
-from omni.isaac.contrib_tasks.boxPushing.assets.franka import FRANKA_PANDA_CFG  # isort: skip
 
 
 @configclass
@@ -42,7 +36,10 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
 
         # Set actions for the specific robot type (franka)
         self.actions.body_joint_pos = mdp.JointPositionActionCfg(
-            asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True
+            asset_name="robot",
+            joint_names=["panda_joint.*"],
+            scale=0.5,
+            use_default_offset=True,
         )
         self.commands.object_pose.body_name = "panda_hand"
 
@@ -98,42 +95,50 @@ class FrankaBoxPushingEnvCfg_PLAY(FrankaBoxPushingEnvCfg):
 
 class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
     mp_config = {
-        'ProMP': {
-            'controller_kwargs': {
-                'p_gains': 0.01 * torch.tensor([120., 120., 120., 120., 50., 30., 10.], device='cuda:0'),
-                'd_gains': 0.01 * torch.tensor([10., 10., 10., 10., 6., 5., 3.], device='cuda:0'),
+        "ProMP": {
+            "controller_kwargs": {
+                "p_gains": 0.01 * torch.tensor([120.0, 120.0, 120.0, 120.0, 50.0, 30.0, 10.0], device="cuda:0"),
+                "d_gains": 0.01 * torch.tensor([10.0, 10.0, 10.0, 10.0, 6.0, 5.0, 3.0], device="cuda:0"),
             },
-            'basis_generator_kwargs': {
-                'basis_bandwidth_factor': 2  # 3.5, 4 to try
-            }
+            "basis_generator_kwargs": {"basis_bandwidth_factor": 2},  # 3.5, 4 to try
         },
-        'DMP': {},
-        'ProDMP': {
-            'controller_kwargs': {
-                'p_gains': 0.01 * torch.tensor([120., 120., 120., 120., 50., 30., 10.], device='cuda:0'),
-                'd_gains': 0.01 * torch.tensor([10., 10., 10., 10., 6., 5., 3.], device='cuda:0'),
+        "DMP": {},
+        "ProDMP": {
+            "controller_kwargs": {
+                "p_gains": 0.01 * torch.tensor([120.0, 120.0, 120.0, 120.0, 50.0, 30.0, 10.0], device="cuda:0"),
+                "d_gains": 0.01 * torch.tensor([10.0, 10.0, 10.0, 10.0, 6.0, 5.0, 3.0], device="cuda:0"),
             },
-            'basis_generator_kwargs': {
-                'basis_bandwidth_factor': 2  # 3.5, 4 to try
-            }
+            "trajectory_generator_kwargs": {
+                "weights_scale": 0.3,
+                "goal_scale": 0.3,
+                "auto_scale_basis": True,
+                # "goal_offset": 1.0,
+                "disable_goal": True,  # was False
+                "relative_goal": True,  # was False
+            },
+            "basis_generator_kwargs": {
+                "num_basis": 5,
+                "basis_bandwidth_factor": 3,
+            },
         },
     }
 
     # Random x goal + random init pos
     @property
     def context_mask(self):
-        return np.hstack([
-            [True] * 9,  # joints position
-            [True] * 9,  # joints velocity
-            [True] * 3,  # position of box
-            [True] * 7,  # position of target
-            [True] * 7,  # actions
-        ])
+        return np.hstack(
+            [
+                [True] * 9,  # joints position
+                [True] * 9,  # joints velocity
+                [True] * 3,  # position of box
+                [True] * 7,  # position of target
+                [True] * 7,  # actions
+            ]
+        )
 
     @property
     def current_pos(self) -> torch.Tensor:
         scene = self.env.unwrapped.scene
-        # return scene.rigid_objects["object"]._data.root_pos_w - scene.env_origins
         asset: Articulation = scene["robot"]
         return asset.data.joint_pos[:, :7]
 
