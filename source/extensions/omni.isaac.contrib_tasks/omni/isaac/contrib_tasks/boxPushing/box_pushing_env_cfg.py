@@ -90,11 +90,11 @@ class CommandsCfg:
     object_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
         body_name=MISSING,  # will be set by agent env cfg
-        resampling_time_range=(2.0, 2.0),
+        resampling_time_range=(10.0, 10.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.4, 0.6),
-            pos_y=(-0.4, 0.0),
+            pos_x=(0.4, 0.7),
+            pos_y=(-0.5, 0.5),
             pos_z=(0.007, 0.007),
             roll=(0.0, 0.0),
             pitch=(0.0, 0.0),
@@ -160,8 +160,8 @@ class RewardsCfg:
 
     object_goal_distance = RewTerm(
         func=mdp.object_goal_distance,
-        params={"command_name": "object_pose"},
-        weight=-3.5 * 100,
+        params={"end_ep": True, "end_ep_weight": 100.0, "command_name": "object_pose"},
+        weight=-3.5,
     )
 
     energy_cost = RewTerm(func=mdp.action_l2, weight=-0.02)
@@ -169,10 +169,12 @@ class RewardsCfg:
     joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
     joint_velocity_limit = RewTerm(
-        func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=0.0  # -1.0
+        func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0
     )
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
+
+    end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-50)
 
 
 
@@ -182,9 +184,9 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
-    # success = DoneTerm(
-    #     func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05}
-    # )
+    success = DoneTerm(
+        func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05}
+    )
 
 
 ##
@@ -220,7 +222,7 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
         max_steps = 200
         self.decimation = 2
         self.episode_length_s = max_steps * self.sim.dt
-        self.episode_length_s += 1 * self.sim.dt
+        self.episode_length_s += 1 * self.sim.dt  # logging bug (buffers empied before episode logs => last step logs correspond to 1st log of next episode)
 
         self.sim.physx.bounce_threshold_velocity = 0.2
         self.sim.physx.bounce_threshold_velocity = 0.01

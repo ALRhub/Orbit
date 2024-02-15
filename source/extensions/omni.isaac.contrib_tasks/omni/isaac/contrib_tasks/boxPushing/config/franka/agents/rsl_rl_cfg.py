@@ -15,7 +15,7 @@ from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import (
 @configclass
 class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 1
-    max_iterations = 800
+    max_iterations = 400
     save_interval = 50
     experiment_name = "franka_box_pushing"
     empirical_normalization = False
