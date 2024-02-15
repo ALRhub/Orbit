@@ -79,18 +79,15 @@ def main():
     while simulation_app.is_running():
         # run everything in inference mode
         with torch.inference_mode():
-            # sample actions from -1 to 1
-            actions = (
-                2
-                * torch.rand(
-                    (args_cli.num_envs, env.action_space.shape[0]),
-                    device=env.unwrapped.device,
-                )
-                - 1
+            actions = torch.zeros(
+                (args_cli.num_envs, env.action_space.shape[0]),
+                device=env.unwrapped.device,
             )
-            # actions = 2 * torch.rand(env.action_space.shape, device=env.unwrapped.device) - 1
+            for i in range(args_cli.num_envs):
+                actions[i] = torch.load("/home/johann/random_sample_torch.pt")
             # apply actions
             _, reward, _, _, info = env.step(actions)
+            # torch.save(info["positions"][0], "/home/johann/traj_gen_orbit.pt")
             rewards.append(reward[0].cpu().numpy())
             infos.append(info)
     # close the simulator
@@ -109,8 +106,6 @@ def plot_trajectories(rewards, infos):
         axs[1, 0].plot(position[4], "b")
         axs[1, 1].plot(position[5], "b")
         axs[1, 2].plot(position[6], "b")
-        if i % 10 == 0:
-            print("Steps: ", i)
     axs[1, 3].plot(rewards)
     plt.show()
 
