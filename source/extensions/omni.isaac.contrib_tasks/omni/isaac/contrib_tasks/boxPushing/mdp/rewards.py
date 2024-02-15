@@ -39,8 +39,11 @@ def object_ee_distance(
 def object_goal_distance(
     env: RLTaskEnv,
     command_name: str,
+    end_ep: bool,
+    end_ep_weight: float = 0.0,
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
+
 ) -> torch.Tensor:
     """Reward the agent for tracking the goal pose using tanh-kernel."""
     # extract the used quantities (to enable type-hinting)
@@ -54,7 +57,12 @@ def object_goal_distance(
     )
     # distance of the end-effector to the object: (num_envs,)
     distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
-    # rewarded if the object is lifted above the threshold
+
+    #  If there is a different weighting only to be computed at the end of an episode
+    if end_ep:
+        #  compute only for terminated envs
+        terminated = env.termination_manager.dones
+        distance += torch.where(terminated, distance , 0.0) * end_ep_weight
     return distance
 
 
@@ -76,6 +84,23 @@ def joint_pos_limits_bp(
         asset.data.joint_pos[:, :] - asset.data.soft_joint_pos_limits[:, :, 1]
     ).clip(min=0.0)
     return torch.sum(out_of_limits, dim=1)
+
+
+def end_ep_vel(
+        env: RLTaskEnv,
+        asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    #  retreiving velocity
+    asset: Articulation = env.scene[asset_cfg.name]
+    vel = torch.abs(asset.data.joint_vel[:, :7])
+
+    reward = torch.norm(vel, dim=1)
+
+    #  compute only for terminated envs
+    terminated = env.termination_manager.dones
+    reward = torch.where(terminated, reward , 0.0)
+
+    return reward
 
 
 def joint_vel_limits_bp(
