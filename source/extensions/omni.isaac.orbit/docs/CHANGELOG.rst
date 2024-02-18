@@ -1,6 +1,27 @@
 Changelog
 ---------
 
+0.10.22 (2024-02-14)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed "divide by zero" bug in :class:`~omni.isaac.orbit.sim.SimulationContext` when setting gravity vector.
+  Now, it is correctly disabled when the gravity vector is set to zero.
+
+
+0.10.21 (2024-02-12)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed the printing of articulation joint information when the articulation has only one joint.
+  Earlier, the function was performing a squeeze operation on the tensor, which caused an error when
+  trying to index the tensor of shape (1,).
+
+
 0.10.20 (2024-02-12)
 ~~~~~~~~~~~~~~~~~~~~
 
