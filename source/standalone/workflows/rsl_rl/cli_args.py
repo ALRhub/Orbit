@@ -36,7 +36,15 @@ def add_rsl_rl_args(parser: argparse.ArgumentParser):
     arg_group.add_argument(
         "--log_project_name", type=str, default=None, help="Name of the logging project when using wandb or neptune."
     )
-    arg_group.add_argument("--motion_primitive", type=str, default=None, help="Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP, etc...")
+    arg_group.add_argument(
+        "--motion_primitive",
+        type=str,
+        default=None,
+        help=(
+            "Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP,"
+            " etc..."
+        ),
+    )
 
 
 def parse_rsl_rl_cfg(task_name: str, args_cli: argparse.Namespace) -> RslRlOnPolicyRunnerCfg:

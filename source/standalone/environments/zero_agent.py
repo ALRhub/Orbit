@@ -19,7 +19,15 @@ parser = argparse.ArgumentParser(description="Zero agent for Orbit environments.
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
-parser.add_argument("--motion_primitive", type=str, default=None, help="Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP, etc...")
+parser.add_argument(
+    "--motion_primitive",
+    type=str,
+    default=None,
+    help=(
+        "Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP,"
+        " etc..."
+    ),
+)
 
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
