@@ -1,10 +1,15 @@
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
+# All rights reserved.
+#
+# SPDX-License-Identifier: BSD-3-Clause
+
 import gymnasium as gym
 import torch
+
 from fancy_gym.black_box.raw_interface_wrapper import RawInterfaceWrapper
 
 
 class OrbitBlackBoxWrapper(RawInterfaceWrapper):
-
     def __init__(self, env):
         super().__init__(env)
         if self.env.spec.max_episode_steps is None:

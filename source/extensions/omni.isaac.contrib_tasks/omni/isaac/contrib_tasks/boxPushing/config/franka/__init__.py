@@ -1,10 +1,11 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
 
 import gymnasium as gym
+
 import fancy_gym.envs.registry as fancy_gym_registry
 
 from . import agents, ik_abs_env_cfg, ik_rel_env_cfg, joint_pos_env_cfg

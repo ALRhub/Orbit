@@ -14,12 +14,11 @@ from omni.isaac.orbit.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import UsdFileCfg
 from omni.isaac.orbit.utils import configclass
 
-from omni.isaac.contrib_tasks.boxPushing.assets.franka import (
-    FRANKA_PANDA_CFG,
-)  # isort: skip
 from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg
 from omni.isaac.contrib_tasks.boxPushing.config.franka import orbit_black_box_wrapper
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
+
+from omni.isaac.contrib_tasks.boxPushing.assets.franka import FRANKA_PANDA_CFG  # isort: skip
 
 ##
 # Pre-defined configs
@@ -43,19 +42,23 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
             # scale=0.5,
             use_default_offset=True,
         )
+        # self.actions.body_joint_pos = mdp.JointEffortActionCfg(
+        #     asset_name="robot",
+        #     joint_names=["panda_joint.*"],
+        #     # scale=0.5,
+        # )
         self.commands.object_pose.body_name = "panda_hand"
 
         # Set Cube as object
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
             init_state=RigidObjectCfg.InitialStateCfg(
-                pos=[0.5, 0.0, 0.055], rot=[1, 0, 0, 0]
+                pos=[0.5, 0.0, 0.055],
+                rot=[1, 0, 0, 0],
                 # pos=[0.4, 0.3, 0.055], rot=[1, 0, 0, 0]
             ),
             spawn=UsdFileCfg(
-                usd_path=os.path.join(
-                    os.path.dirname(os.path.realpath(__file__)), "../../assets/box.usda"
-                ),
+                usd_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../assets/box.usda"),
                 scale=(0.001, 0.001, 0.001),
                 rigid_props=RigidBodyPropertiesCfg(
                     solver_position_iteration_count=16,
@@ -105,14 +108,8 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
         "ProDMP": {
             "black_box_kwargs": {"verbose": 2},
             "controller_kwargs": {
-                "p_gains": 0.01
-                * torch.tensor(
-                    [120.0, 120.0, 120.0, 120.0, 50.0, 30.0, 10.0], device="cuda:0"
-                ),
-                "d_gains": 0.01
-                * torch.tensor(
-                    [10.0, 10.0, 10.0, 10.0, 6.0, 5.0, 3.0], device="cuda:0"
-                ),
+                "p_gains": 0.01 * torch.tensor([120.0, 120.0, 120.0, 120.0, 50.0, 30.0, 10.0], device="cuda:0"),
+                "d_gains": 0.01 * torch.tensor([10.0, 10.0, 10.0, 10.0, 6.0, 5.0, 3.0], device="cuda:0"),
             },
             "trajectory_generator_kwargs": {
                 "weights_scale": 0.3,
@@ -132,7 +129,8 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
     def context_mask(self):
         return np.hstack(
             [
-                [True] * 9,  # joints position
+                [True] * 9,  # joints position relative
+                # [True] * 9,  # joints position absolute
                 [True] * 9,  # joints velocity
                 [True] * 3,  # position of box
                 [True] * 7,  # position of target
