@@ -17,7 +17,7 @@ from . import agents, ik_abs_env_cfg, ik_rel_env_cfg, joint_pos_env_cfg
 ##
 
 gym.register(
-    id="Isaac-Push-Box-Franka-v0",
+    id="Isaac-Box-Pushing-Franka-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": joint_pos_env_cfg.FrankaBoxPushingEnvCfg,
@@ -27,7 +27,7 @@ gym.register(
 )
 
 gym.register(
-    id="Isaac-Push-Box-Franka-Play-v0",
+    id="Isaac-Box-Pushing-Franka-Play-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": joint_pos_env_cfg.FrankaBoxPushingEnvCfg_PLAY,
@@ -41,7 +41,7 @@ gym.register(
 ##
 
 gym.register(
-    id="Isaac-Push-Box-Franka-IK-Abs-v0",
+    id="Isaac-Box-Pushing-Franka-IK-Abs-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": ik_abs_env_cfg.FrankaBoxPushingEnvCfg,
@@ -51,7 +51,7 @@ gym.register(
 )
 
 gym.register(
-    id="Isaac-Push-Box-Franka-IK-Abs-Play-v0",
+    id="Isaac-Box-Pushing-Franka-IK-Abs-Play-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": ik_abs_env_cfg.FrankaBoxPushingEnvCfg_PLAY,
@@ -65,7 +65,7 @@ gym.register(
 ##
 
 gym.register(
-    id="Isaac-Push-Box-Franka-IK-Rel-v0",
+    id="Isaac-Box-Pushing-Franka-IK-Rel-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": ik_rel_env_cfg.FrankaBoxPushingEnvCfg,
@@ -75,7 +75,7 @@ gym.register(
 )
 
 gym.register(
-    id="Isaac-Push-Box-Franka-IK-Rel-Play-v0",
+    id="Isaac-Box-Pushing-Franka-IK-Rel-Play-v0",
     entry_point="omni.isaac.orbit.envs:RLTaskEnv",
     kwargs={
         "env_cfg_entry_point": ik_rel_env_cfg.FrankaBoxPushingEnvCfg_PLAY,
