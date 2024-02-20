@@ -21,13 +21,8 @@ from omni.isaac.orbit.managers import RewardTermCfg as RewTerm
 from omni.isaac.orbit.managers import SceneEntityCfg
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.scene import InteractiveSceneCfg
-from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import (
-    FrameTransformerCfg,
-)
-from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import (
-    GroundPlaneCfg,
-    UsdFileCfg,
-)
+from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import FrameTransformerCfg
+from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 
@@ -55,9 +50,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     # Table
     table = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/Table",
-        init_state=AssetBaseCfg.InitialStateCfg(
-            pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]
-        ),
+        init_state=AssetBaseCfg.InitialStateCfg(pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]),
         spawn=UsdFileCfg(
             usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd",
             scale=(1.5, 1.0, 1.0),
@@ -120,11 +113,10 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
+        # joint_pos_abs = ObsTerm(func=mdp.joint_pos_abs)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
-        target_object_position = ObsTerm(
-            func=mdp.generated_commands, params={"command_name": "object_pose"}
-        )
+        target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
@@ -168,14 +160,11 @@ class RewardsCfg:
 
     joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
-    joint_velocity_limit = RewTerm(
-        func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0
-    )
+    joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
 
-    end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-50)
-
+    end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-50.0)
 
 
 @configclass
@@ -184,9 +173,7 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
-    success = DoneTerm(
-        func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05}
-    )
+    success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05})
 
 
 ##
@@ -199,9 +186,7 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
     """Configuration for the lifting environment."""
 
     # Scene settings
-    scene: ObjectTableSceneCfg = ObjectTableSceneCfg(
-        num_envs=4096, env_spacing=2.5, replicate_physics=False
-    )
+    scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=2.5, replicate_physics=False)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
@@ -222,7 +207,9 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
         max_steps = 200
         self.decimation = 2
         self.episode_length_s = max_steps * self.sim.dt
-        self.episode_length_s += 1 * self.sim.dt  # logging bug (buffers empied before episode logs => last step logs correspond to 1st log of next episode)
+        self.episode_length_s += (
+            1 * self.sim.dt
+        )  # logging bug (buffers empied before episode logs => last step logs correspond to 1st log of next episode)
 
         self.sim.physx.bounce_threshold_velocity = 0.2
         self.sim.physx.bounce_threshold_velocity = 0.01
