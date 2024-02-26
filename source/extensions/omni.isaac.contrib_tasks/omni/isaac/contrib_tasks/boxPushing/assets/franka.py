@@ -37,6 +37,16 @@ FRANKA_PANDA_CFG = ArticulationCfg(
         # collision_props=sim_utils.CollisionPropertiesCfg(contact_offset=0.005, rest_offset=0.0),
     ),
     init_state=ArticulationCfg.InitialStateCfg(
+        # joint_pos={
+        #     "panda_joint1": 0.0,
+        #     "panda_joint2": -0.569,
+        #     "panda_joint3": 0.0,
+        #     "panda_joint4": -2.810,
+        #     "panda_joint5": 0.0,
+        #     "panda_joint6": 3.037,
+        #     "panda_joint7": 0.741,
+        #     "panda_finger_joint.*": 0.04,
+        # },
         joint_pos={
             "panda_joint1": 0.0,
             "panda_joint2": 0.0,
