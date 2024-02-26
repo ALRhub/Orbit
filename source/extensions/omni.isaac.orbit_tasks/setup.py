@@ -20,7 +20,7 @@ EXTENSION_TOML_DATA = toml.load(os.path.join(EXTENSION_PATH, "config", "extensio
 INSTALL_REQUIRES = [
     # generic
     "numpy",
-    "torch",
+    "torch==2.0.1",
     "torchvision>=0.14.1",  # ensure compatibility with torch 1.13.1
     "protobuf>=3.20.2",
     # data collection
@@ -54,7 +54,7 @@ setup(
     description=EXTENSION_TOML_DATA["package"]["description"],
     keywords=EXTENSION_TOML_DATA["package"]["keywords"],
     include_package_data=True,
-    python_requires=">=3.7",
+    python_requires=">=3.10",
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
     packages=["omni.isaac.orbit_tasks"],
@@ -62,6 +62,7 @@ setup(
         "Natural Language :: English",
         "Programming Language :: Python :: 3.10",
         "Isaac Sim :: 2023.1.0-hotfix.1",
+        "Isaac Sim :: 2023.1.1",
     ],
     zip_safe=False,
 )

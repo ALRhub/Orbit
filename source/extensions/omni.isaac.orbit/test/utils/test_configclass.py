@@ -5,13 +5,28 @@
 
 from __future__ import annotations
 
+# NOTE: While we don't actually use the simulation app in this test, we still need to launch it
+#       because warp is only available in the context of a running simulation
+"""Launch Isaac Sim Simulator first."""
+
+from omni.isaac.orbit.app import AppLauncher
+
+# launch omniverse app
+app_launcher = AppLauncher(headless=True)
+simulation_app = app_launcher.app
+
+"""Rest everything follows."""
+
 import copy
 import os
-import sys
+import traceback
 import unittest
+from collections.abc import Callable
 from dataclasses import MISSING, asdict, field
 from functools import wraps
-from typing import Callable, ClassVar
+from typing import ClassVar
+
+import carb
 
 from omni.isaac.orbit.utils.configclass import configclass
 from omni.isaac.orbit.utils.dict import class_to_dict, update_class_from_dict
@@ -636,10 +651,7 @@ class TestConfigClass(unittest.TestCase):
         cfg = DummyClassCfg()
 
         # since python 3.10, annotations are stored as strings
-        if sys.version_info >= (3, 10):
-            annotations = {k: eval(v) for k, v in cfg.__annotations__.items()}
-        else:
-            annotations = cfg.__annotations__
+        annotations = {k: eval(v) for k, v in cfg.__annotations__.items()}
         # check types
         self.assertEqual(annotations["class_name_1"], type)
         self.assertEqual(annotations["class_name_2"], type[DummyClass])
@@ -696,4 +708,12 @@ class TestConfigClass(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    try:
+        unittest.main()
+    except Exception as err:
+        carb.log_error(err)
+        carb.log_error(traceback.format_exc())
+        raise
+    finally:
+        # close sim app
+        simulation_app.close()

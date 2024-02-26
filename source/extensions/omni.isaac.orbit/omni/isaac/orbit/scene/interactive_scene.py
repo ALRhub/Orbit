@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import builtins
 import torch
-from typing import Any, Sequence
+from collections.abc import Sequence
+from typing import Any
 
 import carb
 import omni.usd
@@ -172,6 +173,12 @@ class InteractiveScene:
             self.env_prim_paths,
             global_paths=self._global_prim_paths,
         )
+
+    def __del__(self):
+        """Clear instances of registered assets and sensors."""
+        self.articulations.clear()
+        self.rigid_objects.clear()
+        self.sensors.clear()
 
     def __str__(self) -> str:
         """Returns a string representation of the scene."""

@@ -484,13 +484,21 @@ class SimulationContext(_SimulationContext):
         self._physics_context.enable_ccd(self.cfg.physx.enable_ccd)
         # -- GPU collision stack size
         physx_scene_api.CreateGpuCollisionStackSizeAttr(self.cfg.physx.gpu_collision_stack_size)
+        # -- Improved determinism by PhysX
+        physx_scene_api.CreateEnableEnhancedDeterminismAttr(self.cfg.physx.enable_enhanced_determinism)
 
         # -- Gravity
         # note: Isaac sim only takes the "up-axis" as the gravity direction. But physics allows any direction so we
         #  need to convert the gravity vector to a direction and magnitude pair explicitly.
         gravity = np.asarray(self.cfg.gravity)
         gravity_magnitude = np.linalg.norm(gravity)
-        gravity_direction = gravity / gravity_magnitude
+
+        # Avoid division by zero
+        if gravity_magnitude != 0.0:
+            gravity_direction = gravity / gravity_magnitude
+        else:
+            gravity_direction = gravity
+
         physics_scene.CreateGravityDirectionAttr(Gf.Vec3f(*gravity_direction))
         physics_scene.CreateGravityMagnitudeAttr(gravity_magnitude)
 
