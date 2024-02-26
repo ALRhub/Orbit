@@ -9,8 +9,9 @@
 from __future__ import annotations
 
 import torch
+from collections.abc import Sequence
 from prettytable import PrettyTable
-from typing import TYPE_CHECKING, Sequence
+from typing import TYPE_CHECKING
 
 import carb
 import omni.physics.tensors.impl.api as physx
@@ -702,15 +703,15 @@ class Articulation(RigidObject):
         """Log information about the articulation's simulated joints."""
         # read out all joint parameters from simulation
         # -- gains
-        stiffnesses = self.root_physx_view.get_dof_stiffnesses()[0].squeeze(0).tolist()
-        dampings = self.root_physx_view.get_dof_dampings()[0].squeeze(0).tolist()
+        stiffnesses = self.root_physx_view.get_dof_stiffnesses()[0].tolist()
+        dampings = self.root_physx_view.get_dof_dampings()[0].tolist()
         # -- properties
-        armatures = self.root_physx_view.get_dof_armatures()[0].squeeze(0).tolist()
-        frictions = self.root_physx_view.get_dof_friction_coefficients()[0].squeeze(0).tolist()
+        armatures = self.root_physx_view.get_dof_armatures()[0].tolist()
+        frictions = self.root_physx_view.get_dof_friction_coefficients()[0].tolist()
         # -- limits
-        position_limits = self.root_physx_view.get_dof_limits()[0].squeeze(0).tolist()
-        velocity_limits = self.root_physx_view.get_dof_max_velocities()[0].squeeze(0).tolist()
-        effort_limits = self.root_physx_view.get_dof_max_forces()[0].squeeze(0).tolist()
+        position_limits = self.root_physx_view.get_dof_limits()[0].tolist()
+        velocity_limits = self.root_physx_view.get_dof_max_velocities()[0].tolist()
+        effort_limits = self.root_physx_view.get_dof_max_forces()[0].tolist()
         # create table for term information
         table = PrettyTable(float_format=".3f")
         table.title = f"Simulation Joint Information (Prim path: {self.cfg.prim_path})"
@@ -729,18 +730,16 @@ class Articulation(RigidObject):
         table.align["Name"] = "l"
         # add info on each term
         for index, name in enumerate(self.joint_names):
-            table.add_row(
-                [
-                    index,
-                    name,
-                    stiffnesses[index],
-                    dampings[index],
-                    armatures[index],
-                    frictions[index],
-                    position_limits[index],
-                    velocity_limits[index],
-                    effort_limits[index],
-                ]
-            )
+            table.add_row([
+                index,
+                name,
+                stiffnesses[index],
+                dampings[index],
+                armatures[index],
+                frictions[index],
+                position_limits[index],
+                velocity_limits[index],
+                effort_limits[index],
+            ])
         # convert table to string
         carb.log_info(f"Simulation parameters for joints in {self.cfg.prim_path}:\n" + table.get_string())

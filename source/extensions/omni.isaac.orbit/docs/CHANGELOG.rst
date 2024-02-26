@@ -1,6 +1,68 @@
 Changelog
 ---------
 
+0.10.22 (2024-02-14)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed "divide by zero" bug in :class:`~omni.isaac.orbit.sim.SimulationContext` when setting gravity vector.
+  Now, it is correctly disabled when the gravity vector is set to zero.
+
+
+0.10.21 (2024-02-12)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed the printing of articulation joint information when the articulation has only one joint.
+  Earlier, the function was performing a squeeze operation on the tensor, which caused an error when
+  trying to index the tensor of shape (1,).
+
+
+0.10.20 (2024-02-12)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Adds :attr:`omni.isaac.orbit.sim.PhysxCfg.enable_enhanced_determinism` to enable improved
+  determinism from PhysX. Please note this comes at the expense of performance.
+
+
+0.10.19 (2024-02-08)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed environment closing so that articulations, objects, and sensors are cleared properly.
+
+
+0.10.18 (2024-02-05)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Pinned :mod:`torch` version to 2.0.1 in the setup.py to keep parity version of :mod:`torch` supplied by
+  Isaac 2023.1.1, and prevent version incompatibility between :mod:`torch` ==2.2 and
+  :mod:`typing-extensions` ==3.7.4.3
+
+
+0.10.17 (2024-02-02)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^^
+
+* Fixed carb setting ``/app/livestream/enabled`` to be set as False unless live-streaming is specified
+  by :class:`omni.isaac.orbit.app.AppLauncher` settings. This fixes the logic of :meth:`SimulationContext.render`,
+  which depended on the config in previous versions of Isaac defaulting to false for this setting.
+
+
 0.10.16 (2024-01-29)
 ~~~~~~~~~~~~~~~~~~~~
 

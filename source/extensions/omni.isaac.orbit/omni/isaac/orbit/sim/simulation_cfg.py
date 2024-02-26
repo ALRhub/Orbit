@@ -11,7 +11,7 @@ configuring the environment instances, viewer settings, and simulation parameter
 
 from __future__ import annotations
 
-from typing_extensions import Literal
+from typing import Literal
 
 from omni.isaac.orbit.utils import configclass
 
@@ -114,6 +114,14 @@ class PhysxCfg:
     enable_stabilization: bool = True
     """Enable/disable additional stabilization pass in solver. Default is True."""
 
+    enable_enhanced_determinism: bool = False
+    """Enable/disable improved determinism at the expense of performance. Defaults to False.
+
+    For more information on PhysX determinism, please check `here`_.
+
+    .. _here: https://nvidia-omniverse.github.io/PhysX/physx/5.3.1/docs/RigidBodyDynamics.html#enhanced-determinism
+    """
+
     bounce_threshold_velocity: float = 0.5
     """Relative velocity threshold for contacts to bounce (in m/s). Default is 0.5 m/s."""
 
@@ -182,7 +190,10 @@ class SimulationCfg:
     """The number of physics simulation steps per rendering step. Default is 1."""
 
     gravity: tuple[float, float, float] = (0.0, 0.0, -9.81)
-    """The gravity vector (in m/s^2). Default is (0.0, 0.0, -9.81)."""
+    """The gravity vector (in m/s^2). Default is (0.0, 0.0, -9.81).
+
+    If set to (0.0, 0.0, 0.0), gravity is disabled.
+    """
 
     enable_scene_query_support: bool = False
     """Enable/disable scene query support for collision shapes. Default is False.

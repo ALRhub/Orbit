@@ -165,7 +165,10 @@ class RslRlVecEnvWrapper(VecEnv):
         # move extra observations to the extras dict
         extras["observations"] = {"policy": obs}
         # move time out information to the extras dict
-        extras["time_outs"] = truncated
+        # this is only needed for infinite horizon tasks
+        if not self.unwrapped.cfg.is_finite_horizon:
+            extras["time_outs"] = truncated
+
         # return the step information
         return obs, rew, dones, extras
 
