@@ -128,6 +128,7 @@ class RslRlVecEnvWrapper(VecEnv):
     def get_observations(self) -> tuple[torch.Tensor, dict]:
         """Returns the current observations of the environment."""
         obs_dict = self.unwrapped.observation_manager.compute()
+        # obs_dict["policy"] = self.env.observation(obs_dict["policy"])
         return obs_dict["policy"], {"observations": obs_dict}
 
     @property
@@ -159,11 +160,14 @@ class RslRlVecEnvWrapper(VecEnv):
 
     def step(self, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         # record step information
-        obs, rew, terminated, truncated, extras = self.env.step(actions)
+        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        # obs, rew, terminated, truncated, extras = self.env.step(actions)
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
-        extras["observations"] = {"policy": obs}
+        obs = obs_dict["policy"]
+        extras["observations"] = obs_dict
+        # extras["observations"] = {"policy": obs}
         # move time out information to the extras dict
         # this is only needed for infinite horizon tasks
         if not self.unwrapped.cfg.is_finite_horizon:

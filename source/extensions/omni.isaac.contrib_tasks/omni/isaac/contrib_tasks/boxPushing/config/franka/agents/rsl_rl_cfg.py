@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2023, The ORBIT Project Developers.
+# Copyright (c) 2022-2024, The ORBIT Project Developers.
 # All rights reserved.
 #
 # SPDX-License-Identifier: BSD-3-Clause
@@ -14,8 +14,8 @@ from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import (
 
 @configclass
 class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 1
-    max_iterations = 400
+    num_steps_per_env = 24
+    max_iterations = 800
     save_interval = 50
     experiment_name = "franka_box_pushing"
     empirical_normalization = False
