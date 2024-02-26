@@ -51,7 +51,8 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     table = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/Table",
         init_state=AssetBaseCfg.InitialStateCfg(pos=[0.5, 0, 0], rot=[0.707, 0, 0, 0.707]),
-        spawn=UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd"),
+        spawn=UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Props/Mounts/SeattleLabTable/table_instanceable.usd",
+                         scale=(1.5, 1.0, 1.0),),
     )
 
     # plane
@@ -80,11 +81,11 @@ class CommandsCfg:
     object_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
         body_name=MISSING,  # will be set by agent env cfg
-        resampling_time_range=(5.0, 5.0),
+        resampling_time_range=(10.0, 10.0),
         debug_vis=True,
         ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.4, 0.6),
-            pos_y=(-0.25, 0.25),
+            pos_x=(0.4, 0.7),
+            pos_y=(-0.5, 0.5),
             pos_z=(0.007, 0.007),
             roll=(0.0, 0.0),
             pitch=(0.0, 0.0),
@@ -110,6 +111,7 @@ class ObservationsCfg:
         """Observations for policy group."""
 
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
+        # joint_pos_abs = ObsTerm(func=mdp.joint_pos_abs)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
         target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
@@ -129,35 +131,39 @@ class RandomizationCfg:
 
     reset_all = RandTerm(func=mdp.reset_scene_to_default, mode="reset")
 
-    reset_object_position = RandTerm(
-        func=mdp.reset_root_state_uniform,
-        mode="reset",
-        params={
-            "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
-            "velocity_range": {},
-            "asset_cfg": SceneEntityCfg("object", body_names="Object"),
-        },
-    )
+    # reset_object_position = RandTerm(
+    #     func=mdp.reset_root_state_uniform,
+    #     mode="reset",
+    #     params={
+    #         "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+    #         "velocity_range": {},
+    #         "asset_cfg": SceneEntityCfg("object", body_names="Object"),
+    #     },
+    # )
 
 
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    reaching_object = RewTerm(func=mdp.object_ee_distance, weight=-2.0)
+    object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-2.0)
 
-    object_goal_tracking = RewTerm(
+    object_goal_distance = RewTerm(
         func=mdp.object_goal_distance,
-        params={"command_name": "object_pose"},
+        params={"end_ep": False, "end_ep_weight": 100.0, "command_name": "object_pose"},
         weight=-3.5,
     )
 
     # action penalty
     energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)
 
-    joint_position = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
+    joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
-    joint_velocity = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
+    joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
+
+    # rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
+
+    # end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-50.0)
 
 
 @configclass
@@ -197,7 +203,7 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
 
         # general settings
         # TODO set max steps in some config file and set the value correctly
-        max_steps = 500
+        max_steps = 200
         self.decimation = 2
         self.episode_length_s = max_steps * self.sim.dt
 

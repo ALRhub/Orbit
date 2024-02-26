@@ -33,7 +33,9 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
 
         # Set actions for the specific robot type (franka)
         self.actions.body_joint_pos = mdp.JointPositionActionCfg(
-            asset_name="robot", joint_names=["panda_joint.*"], scale=0.5, use_default_offset=True
+            asset_name="robot", joint_names=["panda_joint.*"],
+            # scale=0.5,
+            use_default_offset=True
         )
         self.commands.object_pose.body_name = "panda_hand"
 
@@ -61,7 +63,7 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
         marker_cfg.prim_path = "/Visuals/FrameTransformer"
         self.scene.ee_frame = FrameTransformerCfg(
             prim_path="{ENV_REGEX_NS}/Robot/panda_link0",
-            debug_vis=False,
+            debug_vis=True,
             visualizer_cfg=marker_cfg,
             target_frames=[
                 FrameTransformerCfg.FrameCfg(

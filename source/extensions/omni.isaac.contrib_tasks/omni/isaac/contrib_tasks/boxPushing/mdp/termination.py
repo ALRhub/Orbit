@@ -23,4 +23,4 @@ def is_success(
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
 ) -> torch.Tensor:
-    return object_goal_distance(env, command_name, robot_cfg, object_cfg) < limit
+    return object_goal_distance(env, command_name, False, 0.0, robot_cfg, object_cfg) < limit

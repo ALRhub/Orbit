@@ -39,6 +39,8 @@ def object_ee_distance(
 def object_goal_distance(
     env: RLTaskEnv,
     command_name: str,
+    end_ep: bool,
+    end_ep_weight: float = 0.0,
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
 ) -> torch.Tensor:
@@ -52,7 +54,11 @@ def object_goal_distance(
     des_pos_w, _ = combine_frame_transforms(robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], des_pos_b)
     # distance of the end-effector to the object: (num_envs,)
     distance = torch.norm(des_pos_w - object.data.root_pos_w[:, :3], dim=1)
-    # rewarded if the object is lifted above the threshold
+    #  If there is a different weighting only to be computed at the end of an episode
+    if end_ep:
+        #  compute only for terminated envs
+        terminated = env.termination_manager.dones
+        distance += torch.where(terminated, distance, 0.0) * end_ep_weight
     return distance
 
 
@@ -70,8 +76,27 @@ def joint_pos_limits_bp(env: RLTaskEnv, asset_cfg: SceneEntityCfg = SceneEntityC
     return torch.sum(out_of_limits, dim=1)
 
 
+def end_ep_vel(
+    env: RLTaskEnv,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
+) -> torch.Tensor:
+    #  retreiving velocity
+    asset: Articulation = env.scene[asset_cfg.name]
+    vel = torch.abs(asset.data.joint_vel[:, :7])
+
+    reward = torch.norm(vel, dim=1)
+
+    #  compute only for terminated envs
+    terminated = env.termination_manager.dones
+    reward = torch.where(terminated, reward, 0.0)
+
+    return reward
+
+
 def joint_vel_limits_bp(
-    env: RLTaskEnv, soft_ratio: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
+    env: RLTaskEnv,
+    soft_ratio: float,
+    asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Penalize joint velocities if they cross the soft limits.
 
@@ -89,3 +114,17 @@ def joint_vel_limits_bp(
     # clip to max error = 1 rad/s per joint to avoid huge penalties
     out_of_limits = out_of_limits.clip_(min=0.0, max=1.0)
     return torch.sum(out_of_limits, dim=1)
+
+
+def rod_inclined_angle(
+    env: RLTaskEnv,
+    ee_frame_cfg: SceneEntityCfg = SceneEntityCfg("ee_frame"),
+) -> torch.Tensor:
+    desired_rod_quat = torch.tensor([0.0, 1.0, 0.0, 0.0], device=env.device).repeat(env.num_envs, 1)
+    ee_frame: FrameTransformer = env.scene[ee_frame_cfg.name]
+    ee_quat = ee_frame.data.target_quat_w[..., 0, :]
+
+    assert desired_rod_quat.shape == ee_quat.shape
+    theta = 2 * torch.acos(torch.abs(torch.einsum("ij,ij->i", desired_rod_quat, ee_quat).unsqueeze(1)))
+    theta = torch.where(theta > torch.pi / 4.0, theta / torch.pi, theta * 0)
+    return theta.squeeze()
