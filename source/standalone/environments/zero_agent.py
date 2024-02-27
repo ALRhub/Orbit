@@ -71,8 +71,9 @@ def main():
         # run everything in inference mode
         with torch.inference_mode():
             # compute zero actions
-            actions = torch.zeros((args_cli.num_envs, env.action_space.shape[0]), device=env.unwrapped.device)
-            # actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
+            actions = torch.zeros(env.action_space.shape, device=env.unwrapped.device)
+            if args_cli.motion_primitive is not None:
+                actions = torch.zeros((args_cli.num_envs, env.action_space.shape[0]), device=env.unwrapped.device)
             # apply actions
             env.step(actions)
 
