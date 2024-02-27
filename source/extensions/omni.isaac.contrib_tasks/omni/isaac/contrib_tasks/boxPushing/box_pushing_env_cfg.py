@@ -162,9 +162,9 @@ class RewardsCfg:
 
     joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
 
-    # rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
+    rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
 
-    # end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-50.0)
+    # end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-1.0)
 
 
 @configclass
