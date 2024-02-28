@@ -97,6 +97,8 @@ def main():
             actions = policy(obs)
             # env stepping
             obs, _, _, _ = env.step(actions)
+            obs, _= env.reset()
+            
 
     # close the simulator
     env.close()

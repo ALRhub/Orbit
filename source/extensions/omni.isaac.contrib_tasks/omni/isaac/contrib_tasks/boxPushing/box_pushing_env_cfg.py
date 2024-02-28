@@ -25,6 +25,8 @@ from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import Fra
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
+from omni.isaac.contrib_tasks.boxPushing.mdp.commands.pose_command_min_dist_cfg import UniformPoseWithMinDistCommandCfg
+
 
 from . import mdp
 
@@ -80,13 +82,15 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 class CommandsCfg:
     """Command terms for the MDP."""
 
-    object_pose = mdp.UniformPoseCommandCfg(
+    object_pose = UniformPoseWithMinDistCommandCfg(
         asset_name="robot",
         body_name=MISSING,  # will be set by agent env cfg
+        box_name="object",
+        min_dist=0.15,
         resampling_time_range=(10.0, 10.0),
         debug_vis=True,
-        ranges=mdp.UniformPoseCommandCfg.Ranges(
-            pos_x=(0.4, 0.7),
+        ranges=UniformPoseWithMinDistCommandCfg.Ranges(
+            pos_x=(0.4, 0.8),
             pos_y=(-0.5, 0.5),
             pos_z=(0.007, 0.007),
             roll=(0.0, 0.0),
@@ -94,6 +98,21 @@ class CommandsCfg:
             yaw=(0.0, 0.0),
         ),
     )
+
+    # object_pose = mdp.UniformPoseCommandCfg(
+    #     asset_name="robot",
+    #     body_name=MISSING,  # will be set by agent env cfg
+    #     resampling_time_range=(10.0, 10.0),
+    #     debug_vis=True,
+    #     ranges=mdp.UniformPoseCommandCfg.Ranges(
+    #         pos_x=(0.4, 0.8),
+    #         pos_y=(-0.5, 0.5),
+    #         pos_z=(0.007, 0.007),
+    #         roll=(0.0, 0.0),
+    #         pitch=(0.0, 0.0),
+    #         yaw=(0.0, 0.0),
+    #     ),
+    # )
 
 
 @configclass
@@ -173,7 +192,7 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
-    success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05})
+    # success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05})
 
 
 ##
