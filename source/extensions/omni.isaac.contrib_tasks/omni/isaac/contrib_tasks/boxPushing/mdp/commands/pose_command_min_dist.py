@@ -87,7 +87,7 @@ class UniformPoseWithMinDistCommand(UniformPoseCommand):
 
     def _resample_command(self, env_ids: Sequence[int]):
 
-        box_position_b = self.box.data.root_pos_w[env_ids, :3] - self.robot.data.root_state_w[env_ids, :3]
+        box_position_b = self.box.data.root_pos_w[:, :3] - self.robot.data.root_state_w[:, :3]
 
         # sample new pose targets
         # -- position
@@ -96,24 +96,12 @@ class UniformPoseWithMinDistCommand(UniformPoseCommand):
         self.pose_command_b[env_ids, 1] = r.uniform_(*self.cfg.ranges.pos_y)
         self.pose_command_b[env_ids, 2] = r.uniform_(*self.cfg.ranges.pos_z)
         
-        print("===============")
-
         for _ in range(self.max_iters):
-            # Compute distances from box_position for all environments
-            distances = torch.norm(self.pose_command_b[env_ids, :3] - box_position_b, dim=1)
+            distances = torch.norm(self.pose_command_b[env_ids, :3] - box_position_b[env_ids, :], dim=1)
+            mask = distances >= self.min_dist
 
-            # Create a mask for positions that are within min_distance of box_position
-            mask = distances[env_ids] >= self.min_dist
-            
-            print("distances ", distances)
-            print("mask ", mask)
-
-            # Check if all positions are at least min_distance away
             if mask.all():
-                print("BREAK")
-                break  # All positions are at least min_distance away, exit the loop
-
-            # Apply the mask to update only the positions that need resampling
+                break
 
             resampled = self.resample_position(env_ids)
             self.pose_command_b[env_ids, :] = torch.where(mask.unsqueeze(1), self.pose_command_b[env_ids, :], resampled[env_ids, :])
