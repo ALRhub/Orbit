@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from omni.isaac.orbit.envs import RLTaskEnv
 
 
-def object_position_in_robot_root_frame(
+def object_pose_in_robot_root_frame(
     env: RLTaskEnv,
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
@@ -24,11 +24,11 @@ def object_position_in_robot_root_frame(
     """The position of the object in the robot's root frame."""
     robot: RigidObject = env.scene[robot_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
-    object_pos_w = object.data.root_pos_w[:, :3]
-    object_pos_b, _ = subtract_frame_transforms(
-        robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], object_pos_w
+    object_pose_w = object.data.root_state_w[:, :7]
+    object_pos_b, object_or_b = subtract_frame_transforms(
+        robot.data.root_state_w[:, :3], robot.data.root_state_w[:, 3:7], object_pose_w[:,:3], object_pose_w[:, 3:]
     )
-    return object_pos_b
+    return torch.cat((object_pos_b, object_or_b), dim=1)
 
 
 def joint_pos_abs(env: RLTaskEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:

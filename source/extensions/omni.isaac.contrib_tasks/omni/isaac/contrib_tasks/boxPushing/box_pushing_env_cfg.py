@@ -27,6 +27,7 @@ from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 from omni.isaac.contrib_tasks.boxPushing.mdp.commands.pose_command_min_dist_cfg import UniformPoseWithMinDistCommandCfg
 
+import torch
 
 from . import mdp
 
@@ -90,30 +91,14 @@ class CommandsCfg:
         resampling_time_range=(10.0, 10.0),
         debug_vis=True,
         ranges=UniformPoseWithMinDistCommandCfg.Ranges(
-            pos_x=(0.4, 0.8),
-            pos_y=(-0.5, 0.5),
+            pos_x=(0.3, 0.6),
+            pos_y=(-0.45, 0.45),
             pos_z=(0.007, 0.007),
             roll=(0.0, 0.0),
             pitch=(0.0, 0.0),
-            yaw=(0.0, 0.0),
+            yaw=(0, 2*torch.pi),
         ),
     )
-
-    # object_pose = mdp.UniformPoseCommandCfg(
-    #     asset_name="robot",
-    #     body_name=MISSING,  # will be set by agent env cfg
-    #     resampling_time_range=(10.0, 10.0),
-    #     debug_vis=True,
-    #     ranges=mdp.UniformPoseCommandCfg.Ranges(
-    #         pos_x=(0.4, 0.8),
-    #         pos_y=(-0.5, 0.5),
-    #         pos_z=(0.007, 0.007),
-    #         roll=(0.0, 0.0),
-    #         pitch=(0.0, 0.0),
-    #         yaw=(0.0, 0.0),
-    #     ),
-    # )
-
 
 @configclass
 class ActionsCfg:
@@ -134,8 +119,8 @@ class ObservationsCfg:
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         # joint_pos_abs = ObsTerm(func=mdp.joint_pos_abs)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
-        object_position = ObsTerm(func=mdp.object_position_in_robot_root_frame)
-        target_object_position = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
+        object_pose = ObsTerm(func=mdp.object_pose_in_robot_root_frame)
+        target_object_pose = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
         actions = ObsTerm(func=mdp.last_action)
 
         def __post_init__(self):
@@ -169,10 +154,16 @@ class RewardsCfg:
 
     object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-2.0)
 
-    object_goal_distance = RewTerm(
-        func=mdp.object_goal_distance,
+    object_goal_position_distance = RewTerm(
+        func=mdp.object_goal_position_distance,
         params={"end_ep": False, "end_ep_weight": 100.0, "command_name": "object_pose"},
         weight=-3.5,
+    )
+
+    object_goal_orientation_distance = RewTerm(
+        func=mdp.object_goal_orientation_distance,
+        params={"command_name": "object_pose"},
+        weight=-1.0,
     )
 
     energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)

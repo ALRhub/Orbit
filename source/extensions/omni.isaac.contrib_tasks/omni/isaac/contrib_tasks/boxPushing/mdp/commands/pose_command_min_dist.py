@@ -17,8 +17,6 @@ from omni.isaac.orbit.markers import VisualizationMarkers
 from omni.isaac.orbit.markers.config import FRAME_MARKER_CFG
 from omni.isaac.orbit.utils.math import combine_frame_transforms, compute_pose_error, quat_from_euler_xyz
 
-from omni.isaac.contrib_tasks.boxPushing.mdp.rewards import object_goal_distance
-
 if TYPE_CHECKING:
     from omni.isaac.orbit.envs import BaseEnv
 

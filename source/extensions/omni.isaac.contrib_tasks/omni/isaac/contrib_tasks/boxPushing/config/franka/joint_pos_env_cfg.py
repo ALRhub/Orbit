@@ -130,10 +130,9 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
         return np.hstack(
             [
                 [True] * 9,  # joints position relative
-                # [True] * 9,  # joints position absolute
                 [True] * 9,  # joints velocity
-                [True] * 3,  # position of box
-                [True] * 7,  # position of target
+                [True] * 7,  # pose of box
+                [True] * 7,  # pose of target
                 [True] * 7,  # actions
             ]
         )

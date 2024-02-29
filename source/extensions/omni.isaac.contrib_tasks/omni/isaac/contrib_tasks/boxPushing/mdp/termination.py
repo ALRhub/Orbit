@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING
 
 from omni.isaac.orbit.managers import SceneEntityCfg
 
-from .rewards import object_goal_distance
+from .rewards import object_goal_position_distance
 
 if TYPE_CHECKING:
     from omni.isaac.orbit.envs import RLTaskEnv
@@ -23,4 +23,4 @@ def is_success(
     robot_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
 ) -> torch.Tensor:
-    return object_goal_distance(env, command_name, False, 0.0, robot_cfg, object_cfg) < limit
+    return object_goal_position_distance(env, command_name, False, 0.0, robot_cfg, object_cfg) < limit
