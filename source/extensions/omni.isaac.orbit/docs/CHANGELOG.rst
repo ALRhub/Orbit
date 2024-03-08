@@ -1,6 +1,59 @@
 Changelog
 ---------
 
+0.12.0 (2024-03-08)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added functionality to sample flat patches on a generated terrain. This can be configured using
+  :attr:`omni.isaac.orbit.terrains.SubTerrainBaseCfg.flat_patch_sampling` attribute.
+* Added a randomization function for setting terrain-aware root state. Through this, an asset can be
+  reset to a randomly sampled flat patches.
+
+Fixed
+^^^^^
+
+* Separated normal and terrain-base position commands. The terrain based commands rely on the
+  terrain to sample flat patches for setting the target position.
+* Fixed command resample termination function.
+
+Changed
+^^^^^^^
+
+* Added the attribute :attr:`omni.isaac.orbit.envs.mdp.commands.UniformVelocityCommandCfg.heading_control_stiffness`
+  to control the stiffness of the heading control term in the velocity command term. Earlier, this was
+  hard-coded to 0.5 inside the term.
+
+Removed
+^^^^^^^
+
+* Removed the function :meth:`sample_new_targets` in the terrain importer. Instead the attribute
+  :attr:`omni.isaac.orbit.terrains.TerrainImporter.flat_patches` should be used to sample new targets.
+
+
+0.11.3 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Corrects the functions :func:`omni.isaac.orbit.utils.math.axis_angle_from_quat` and :func:`omni.isaac.orbit.utils.math.quat_error_magnitude`
+  to accept tensors of the form (..., 4) instead of (N, 4). This brings us in line with our documentation and also upgrades one of our functions
+  to handle higher dimensions.
+
+
+0.11.2 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added checks for default joint position and joint velocity in the articulation class. This is to prevent
+  users from configuring values for these quantities that might be outside the valid range from the simulation.
+
+
 0.11.1 (2024-02-29)
 ~~~~~~~~~~~~~~~~~~~
 
