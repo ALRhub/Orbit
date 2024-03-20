@@ -103,6 +103,7 @@ intersphinx_mapping = {
     "torch": ("https://pytorch.org/docs/stable/", None),
     "isaac": ("https://docs.omniverse.nvidia.com/py/isaacsim", None),
     "gymnasium": ("https://gymnasium.farama.org/", None),
+    "warp": ("https://nvidia.github.io/warp/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -137,6 +138,7 @@ autodoc_mock_imports = [
     "omni.isaac.version",
     "omni.isaac.motion_generation",
     "omni.isaac.ui",
+    "omni.syntheticdata",
     "omni.timeline",
     "omni.ui",
     "gym",

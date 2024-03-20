@@ -55,6 +55,34 @@ def projected_gravity(env: BaseEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("
     return asset.data.projected_gravity_b
 
 
+def root_pos_w(env: BaseEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Asset root position in the environment frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return asset.data.root_pos_w - env.scene.env_origins
+
+
+def root_quat_w(env: BaseEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Asset root orientation in the environment frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return asset.data.root_quat_w
+
+
+def root_lin_vel_w(env: BaseEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Asset root linear velocity in the environment frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return asset.data.root_lin_vel_w
+
+
+def root_ang_vel_w(env: BaseEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
+    """Asset root angular velocity in the environment frame."""
+    # extract the used quantities (to enable type-hinting)
+    asset: RigidObject = env.scene[asset_cfg.name]
+    return asset.data.root_ang_vel_w
+
+
 """
 Joint state.
 """
@@ -101,6 +129,7 @@ Sensors.
 
 def height_scan(env: BaseEnv, sensor_cfg: SceneEntityCfg, offset: float = 0.5) -> torch.Tensor:
     """Height scan from the given sensor w.r.t. the sensor's frame.
+
     The provided offset (Defaults to 0.5) is subtracted from the returned values.
     """
     # extract the used quantities (to enable type-hinting)
@@ -126,9 +155,16 @@ Actions.
 """
 
 
-def last_action(env: BaseEnv) -> torch.Tensor:
-    """The last input action to the environment."""
-    return env.action_manager.action
+def last_action(env: BaseEnv, action_name: str | None = None) -> torch.Tensor:
+    """The last input action to the environment.
+
+    The name of the action term for which the action is required. If None, the
+    entire action tensor is returned.
+    """
+    if action_name is None:
+        return env.action_manager.action
+    else:
+        return env.action_manager.get_term(action_name).raw_actions
 
 
 """
