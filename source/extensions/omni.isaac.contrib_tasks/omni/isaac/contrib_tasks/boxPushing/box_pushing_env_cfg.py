@@ -152,7 +152,8 @@ class RandomizationCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-2.0)
+
+    object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-1.0)
 
     object_goal_position_distance = RewTerm(
         func=mdp.object_goal_position_distance,
@@ -163,10 +164,11 @@ class RewardsCfg:
     object_goal_orientation_distance = RewTerm(
         func=mdp.object_goal_orientation_distance,
         params={"command_name": "object_pose"},
-        weight=-1.0,
+        weight=-2.0,
     )
 
-    energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)
+    # energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)
+    energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-4)
 
     joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
 
@@ -183,7 +185,7 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
-    # success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit": 0.05})
+    success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit_pose_dist": 0.05, "limit_or_dist": 0.5})
 
 
 ##
@@ -213,16 +215,12 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
         self.sim.dt = 0.01  # 100Hz
 
         # general settings
-        # TODO set max steps in some config file and set the value correctly
         max_steps = 200
         self.decimation = 2
         self.episode_length_s = max_steps * self.sim.dt
-        # self.episode_length_s += (
-        #     1 * self.sim.dt
-        # )  # logging bug (buffers empied before episode logs => last step logs correspond to 1st log of next episode)
 
         self.sim.physx.bounce_threshold_velocity = 0.2
         self.sim.physx.bounce_threshold_velocity = 0.01
         self.sim.physx.gpu_found_lost_aggregate_pairs_capacity = 1024 * 1024 * 4
-        self.sim.physx.gpu_total_aggregate_pairs_capacity = 30 * 1024
+        self.sim.physx.gpu_total_aggregate_pairs_capacity = 50 * 1024
         self.sim.physx.friction_correlation_distance = 0.00625
