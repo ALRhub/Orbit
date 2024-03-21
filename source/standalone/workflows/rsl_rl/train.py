@@ -9,15 +9,14 @@ from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
-
 import argparse
 import os
+import numpy as np
 
 from omni.isaac.orbit.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip
-
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
@@ -45,7 +44,6 @@ app_launcher = AppLauncher(args_cli, experience=app_experience)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
-
 
 import gymnasium as gym
 import os
@@ -108,6 +106,11 @@ def main():
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env)
 
+    # set seed of the environment
+    if agent_cfg.seed == -1:
+        agent_cfg.seed = np.random.randint(0, 10000)
+    env.seed(agent_cfg.seed, torch_deterministic=False)
+
     # create runner from rsl-rl
     runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
     # write git state to logs
@@ -119,9 +122,6 @@ def main():
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
         # load previously trained model
         runner.load(resume_path)
-
-    # set seed of the environment
-    env.seed(agent_cfg.seed)
 
     # dump the configuration into log-directory
     dump_yaml(os.path.join(log_dir, "params", "env.yaml"), env_cfg)
