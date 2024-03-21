@@ -1,6 +1,283 @@
 Changelog
 ---------
 
+0.15.0 (2024-03-17)
+~~~~~~~~~~~~~~~~~~~
+
+Deprecated
+^^^^^^^^^^
+
+* Renamed :class:`omni.isaac.orbit.managers.RandomizationManager` to :class:`omni.isaac.orbit.managers.EventManager`
+  class for clarification as the manager takes care of events such as reset in addition to pure randomizations.
+* Renamed :class:`omni.isaac.orbit.managers.RandomizationTermCfg` to :class:`omni.isaac.orbit.managers.EventTermCfg`
+  for consistency with the class name change.
+
+
+0.14.1 (2024-03-16)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added simulation schemas for joint drive and fixed tendons. These can be configured for assets imported
+  from file formats.
+* Added logging of tendon properties to the articulation class (if they are present in the USD prim).
+
+
+0.14.0 (2024-03-15)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed the ordering of body names used in the :class:`omni.isaac.orbit.assets.Articulation` class. Earlier,
+  the body names were not following the same ordering as the bodies in the articulation. This led
+  to issues when using the body names to access data related to the links from the articulation view
+  (such as Jacobians, mass matrices, etc.).
+
+Removed
+^^^^^^^
+
+* Removed the attribute :attr:`body_physx_view` from the :class:`omni.isaac.orbit.assets.RigidObject`
+  and :class:`omni.isaac.orbit.assets.Articulation` classes. These were causing confusions when used
+  with articulation view since the body names were not following the same ordering.
+
+
+0.13.1 (2024-03-14)
+~~~~~~~~~~~~~~~~~~~
+
+Removed
+^^^^^^^
+
+* Removed the :mod:`omni.isaac.orbit.compat` module. This module was used to provide compatibility
+  with older versions of Isaac Sim. It is no longer needed since we have most of the functionality
+  absorbed into the main classes.
+
+
+0.13.0 (2024-03-12)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added support for the following data types inside the :class:`omni.isaac.orbit.sensors.Camera` class:
+  ``instance_segmentation_fast`` and ``instance_id_segmentation_fast``. These are are GPU-supported annotations
+  and are faster than the regular annotations.
+
+Fixed
+^^^^^
+
+* Fixed handling of semantic filtering inside the :class:`omni.isaac.orbit.sensors.Camera` class. Earlier,
+  the annotator was given ``semanticTypes`` as an argument. However, with Isaac Sim 2023.1, the annotator
+  does not accept this argument. Instead the mapping needs to be set to the synthetic data interface directly.
+* Fixed the return shape of colored images for segmentation data types inside the
+  :class:`omni.isaac.orbit.sensors.Camera` class. Earlier, the images were always returned as ``int32``. Now,
+  they are casted to ``uint8`` 4-channel array before returning if colorization is enabled for the annotation type.
+
+Removed
+^^^^^^^
+
+* Dropped support for ``instance_segmentation`` and ``instance_id_segmentation`` annotations in the
+  :class:`omni.isaac.orbit.sensors.Camera` class. Their "fast" counterparts should be used instead.
+* Renamed the argument :attr:`omni.isaac.orbit.sensors.CameraCfg.semantic_types` to
+  :attr:`omni.isaac.orbit.sensors.CameraCfg.semantic_filter`. This is more aligned with Replicator's terminology
+  for semantic filter predicates.
+* Replaced the argument :attr:`omni.isaac.orbit.sensors.CameraCfg.colorize` with separate colorized
+  arguments for each annotation type (:attr:`~omni.isaac.orbit.sensors.CameraCfg.colorize_instance_segmentation`,
+  :attr:`~omni.isaac.orbit.sensors.CameraCfg.colorize_instance_id_segmentation`, and
+  :attr:`~omni.isaac.orbit.sensors.CameraCfg.colorize_semantic_segmentation`).
+
+
+0.12.4 (2024-03-11)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+
+* Adapted randomization terms to deal with ``slice`` for the body indices. Earlier, the terms were not
+  able to handle the slice object and were throwing an error.
+* Added ``slice`` type-hinting to all body and joint related methods in the rigid body and articulation
+  classes. This is to make it clear that the methods can handle both list of indices and slices.
+
+
+0.12.3 (2024-03-11)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Added signal handler to the :class:`omni.isaac.orbit.app.AppLauncher` class to catch the ``SIGINT`` signal
+  and close the application gracefully. This is to prevent the application from crashing when the user
+  presses ``Ctrl+C`` to close the application.
+
+
+0.12.2 (2024-03-10)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added observation terms for states of a rigid object in world frame.
+* Added randomization terms to set root state with randomized orientation and joint state within user-specified limits.
+* Added reward term for penalizing specific termination terms.
+
+Fixed
+^^^^^
+
+* Improved sampling of states inside randomization terms. Earlier, the code did multiple torch calls
+  for sampling different components of the vector. Now, it uses a single call to sample the entire vector.
+
+
+0.12.1 (2024-03-09)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added an option to the last actions observation term to get a specific term by name from the action manager.
+  If None, the behavior remains the same as before (the entire action is returned).
+
+
+0.12.0 (2024-03-08)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added functionality to sample flat patches on a generated terrain. This can be configured using
+  :attr:`omni.isaac.orbit.terrains.SubTerrainBaseCfg.flat_patch_sampling` attribute.
+* Added a randomization function for setting terrain-aware root state. Through this, an asset can be
+  reset to a randomly sampled flat patches.
+
+Fixed
+^^^^^
+
+* Separated normal and terrain-base position commands. The terrain based commands rely on the
+  terrain to sample flat patches for setting the target position.
+* Fixed command resample termination function.
+
+Changed
+^^^^^^^
+
+* Added the attribute :attr:`omni.isaac.orbit.envs.mdp.commands.UniformVelocityCommandCfg.heading_control_stiffness`
+  to control the stiffness of the heading control term in the velocity command term. Earlier, this was
+  hard-coded to 0.5 inside the term.
+
+Removed
+^^^^^^^
+
+* Removed the function :meth:`sample_new_targets` in the terrain importer. Instead the attribute
+  :attr:`omni.isaac.orbit.terrains.TerrainImporter.flat_patches` should be used to sample new targets.
+
+
+0.11.3 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Corrects the functions :func:`omni.isaac.orbit.utils.math.axis_angle_from_quat` and :func:`omni.isaac.orbit.utils.math.quat_error_magnitude`
+  to accept tensors of the form (..., 4) instead of (N, 4). This brings us in line with our documentation and also upgrades one of our functions
+  to handle higher dimensions.
+
+
+0.11.2 (2024-03-04)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added checks for default joint position and joint velocity in the articulation class. This is to prevent
+  users from configuring values for these quantities that might be outside the valid range from the simulation.
+
+
+0.11.1 (2024-02-29)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Replaced the default values for ``joint_ids`` and ``body_ids`` from ``None`` to ``slice(None)``
+  in the :class:`omni.isaac.orbit.managers.SceneEntityCfg`.
+* Adapted rewards and observations terms so that the users can query a subset of joints and bodies.
+
+
+0.11.0 (2024-02-27)
+~~~~~~~~~~~~~~~~~~~
+
+Removed
+^^^^^^^
+
+* Dropped support for Isaac Sim<=2022.2. As part of this, removed the components of :class:`omni.isaac.orbit.app.AppLauncher`
+  which handled ROS extension loading. We no longer need them in Isaac Sim>=2023.1 to control the load order to avoid crashes.
+* Upgraded Dockerfile to use ISAACSIM_VERSION=2023.1.1 by default.
+
+
+0.10.28 (2024-02-29)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Implemented relative and moving average joint position action terms. These allow the user to specify
+  the target joint positions as relative to the current joint positions or as a moving average of the
+  joint positions over a window of time.
+
+
+0.10.27 (2024-02-28)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added UI feature to start and stop animation recording in the stage when running an environment.
+  To enable this feature, please pass the argument ``--disable_fabric`` to the environment script to allow
+  USD read/write operations. Be aware that this will slow down the simulation.
+
+
+0.10.26 (2024-02-26)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added a viewport camera controller class to the :class:`omni.isaac.orbit.envs.BaseEnv`. This is useful
+  for applications where the user wants to render the viewport from different perspectives even when the
+  simulation is running in headless mode.
+
+
+0.10.25 (2024-02-26)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Ensures that all path arguments in :mod:`omni.isaac.orbit.sim.utils` are cast to ``str``. Previously,
+  we had handled path types as strings without casting.
+
+
+0.10.24 (2024-02-26)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added tracking of contact time in the :class:`omni.isaac.orbit.sensors.ContactSensor` class. Previously,
+  only the air time was being tracked.
+* Added contact force threshold, :attr:`omni.isaac.orbit.sensors.ContactSensorCfg.force_threshold`, to detect
+  when the contact sensor is in contact. Previously, this was set to hard-coded 1.0 in the sensor class.
+
+
+0.10.23 (2024-02-21)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixes the order of size arguments in :meth:`omni.isaac.orbit.terrains.height_field.random_uniform_terrain`. Previously, the function would crash if the size along x and y were not the same.
+
+
 0.10.22 (2024-02-14)
 ~~~~~~~~~~~~~~~~~~~~
 

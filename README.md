@@ -4,7 +4,7 @@
 
 # Orbit
 
-[![IsaacSim](https://img.shields.io/badge/IsaacSim-2023.1.0--hotfix.1-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
+[![IsaacSim](https://img.shields.io/badge/IsaacSim-2023.1.1-silver.svg)](https://docs.omniverse.nvidia.com/isaacsim/latest/overview.html)
 [![Python](https://img.shields.io/badge/python-3.10-blue.svg)](https://docs.python.org/3/whatsnew/3.10.html)
 [![Linux platform](https://img.shields.io/badge/platform-linux--64-orange.svg)](https://releases.ubuntu.com/20.04/)
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://pre-commit.com/)
@@ -56,9 +56,9 @@ NVIDIA Isaac Sim is available freely under [individual license](https://www.nvid
 
 Orbit framework is released under [BSD-3 License](LICENSE). The license files of its dependencies and assets are present in the [`docs/licenses`](docs/licenses) directory.
 
-## Citation
+## Citing
 
-Please cite [this paper](https://arxiv.org/abs/2301.04195) if you use this framework in your work:
+If you use this framework in your work, please cite [this paper](https://arxiv.org/abs/2301.04195):
 
 ```text
 @article{mittal2023orbit,

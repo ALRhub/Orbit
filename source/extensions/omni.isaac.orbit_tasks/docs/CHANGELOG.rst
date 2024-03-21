@@ -1,6 +1,40 @@
 Changelog
 ---------
 
+0.6.0 (2024-03-10)
+~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added a new environment ``Isaac-Open-Drawer-Franka-v0`` for the Franka arm to open a drawer. It is
+  based on the IsaacGymEnvs cabinet environment.
+
+Fixed
+^^^^^
+
+* Fixed logging of extra information for RL-Games wrapper. It expected the extra information to be under the
+  key ``"episode"``, but Orbit used the key ``"log"``. The wrapper now remaps the key to ``"episode"``.
+
+
+0.5.7 (2024-02-28)
+~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Updated the RL wrapper for the skrl library to the latest release (>= 1.1.0)
+
+
+0.5.6 (2024-02-21)
+~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed the configuration parsing to support a pre-initialized configuration object.
+
+
 0.5.5 (2024-02-05)
 ~~~~~~~~~~~~~~~~~~
 

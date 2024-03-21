@@ -17,6 +17,9 @@ from omni.isaac.orbit.app import AppLauncher
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Random agent for Orbit environments.")
 parser.add_argument("--cpu", action="store_true", default=False, help="Use CPU pipeline.")
+parser.add_argument(
+    "--disable_fabric", action="store_true", default=False, help="Disable fabric and use USD I/O operations."
+)
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
 parser.add_argument(
@@ -39,14 +42,10 @@ simulation_app = app_launcher.app
 
 """Rest everything follows."""
 
-
 import gymnasium as gym
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import traceback
-
-import carb
 
 import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
@@ -55,8 +54,10 @@ from omni.isaac.orbit_tasks.utils import parse_env_cfg
 
 def main():
     """Random actions agent with Orbit environment."""
-    # parse configuration
-    env_cfg = parse_env_cfg(args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs)
+    # create environment configuration
+    env_cfg = parse_env_cfg(
+        args_cli.task, use_gpu=not args_cli.cpu, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
+    )
     # create environment
     task_name = args_cli.task
     if args_cli.motion_primitive is not None:
@@ -127,13 +128,7 @@ def plot_trajectories(env, infos, rewards=None):
 
 
 if __name__ == "__main__":
-    try:
-        # run the main execution
-        main()
-    except Exception as err:
-        carb.log_error(err)
-        carb.log_error(traceback.format_exc())
-        raise
-    finally:
-        # close sim app
-        simulation_app.close()
+    # run the main function
+    main()
+    # close sim app
+    simulation_app.close()

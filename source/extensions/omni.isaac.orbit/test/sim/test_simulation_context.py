@@ -16,10 +16,8 @@ simulation_app = AppLauncher(headless=True).app
 
 import ctypes
 import numpy as np
-import traceback
 import unittest
 
-import carb
 import omni.isaac.core.utils.prims as prim_utils
 from omni.isaac.core.simulation_context import SimulationContext as IsaacSimulationContext
 
@@ -78,7 +76,7 @@ class TestSimulationContext(unittest.TestCase):
         sim = SimulationContext()
         version = sim.get_version()
         self.assertTrue(len(version) > 0)
-        self.assertTrue(version[0] >= 2022)
+        self.assertTrue(version[0] >= 2023)
 
     def test_carb_setting(self):
         """Test setting carb settings."""
@@ -137,12 +135,7 @@ class TestSimulationContext(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    try:
-        unittest.main()
-    except Exception as err:
-        carb.log_error(err)
-        carb.log_error(traceback.format_exc())
-        raise
-    finally:
-        # close sim app
-        simulation_app.close()
+    # run main
+    unittest.main(verbosity=2, exit=False)
+    # close sim app
+    simulation_app.close()

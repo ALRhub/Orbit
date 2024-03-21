@@ -103,6 +103,7 @@ intersphinx_mapping = {
     "torch": ("https://pytorch.org/docs/stable/", None),
     "isaac": ("https://docs.omniverse.nvidia.com/py/isaacsim", None),
     "gymnasium": ("https://gymnasium.farama.org/", None),
+    "warp": ("https://nvidia.github.io/warp/", None),
 }
 
 # Add any paths that contain templates here, relative to this directory.
@@ -137,6 +138,7 @@ autodoc_mock_imports = [
     "omni.isaac.version",
     "omni.isaac.motion_generation",
     "omni.isaac.ui",
+    "omni.syntheticdata",
     "omni.timeline",
     "omni.ui",
     "gym",
@@ -222,7 +224,7 @@ html_theme_options = {
         {
             "name": "Isaac Sim",
             "url": "https://developer.nvidia.com/isaac-sim",
-            "icon": "https://img.shields.io/badge/IsaacSim-2023.1.0-silver.svg",
+            "icon": "https://img.shields.io/badge/IsaacSim-2023.1.1-silver.svg",
             "type": "url",
         },
         {

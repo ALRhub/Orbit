@@ -17,7 +17,6 @@ import carb
 import omni.isaac.core.utils.stage as stage_utils
 import omni.kit.commands
 from omni.isaac.cloner import Cloner
-from omni.isaac.version import get_version
 from pxr import PhysxSchema, Sdf, Semantics, Usd, UsdGeom, UsdPhysics, UsdShade
 
 from omni.isaac.orbit.utils.string import to_camel_case
@@ -147,7 +146,7 @@ def apply_nested(func: Callable) -> Callable:
     """
 
     @functools.wraps(func)
-    def wrapper(prim_path: str, *args, **kwargs):
+    def wrapper(prim_path: str | Sdf.Path, *args, **kwargs):
         # map args and kwargs to function signature so we can get the stage
         # note: we do this to check if stage is given in arg or kwarg
         sig = inspect.signature(func)
@@ -216,7 +215,9 @@ def clone(func: Callable) -> Callable:
     """
 
     @functools.wraps(func)
-    def wrapper(prim_path: str, cfg: SpawnerCfg, *args, **kwargs):
+    def wrapper(prim_path: str | Sdf.Path, cfg: SpawnerCfg, *args, **kwargs):
+        # cast prim_path to str type in case its an Sdf.Path
+        prim_path = str(prim_path)
         # check prim path is global
         if not prim_path.startswith("/"):
             raise ValueError(f"Prim path '{prim_path}' is not global. It must start with '/'.")
@@ -270,14 +271,8 @@ def clone(func: Callable) -> Callable:
         # clone asset using cloner API
         if len(prim_paths) > 1:
             cloner = Cloner()
-            # clone the prim based on isaac-sim version
-            isaac_major_version = int(get_version()[2])
-            if isaac_major_version <= 2022:
-                cloner.clone(prim_paths[0], prim_paths[1:], replicate_physics=False)
-            else:
-                cloner.clone(
-                    prim_paths[0], prim_paths[1:], replicate_physics=False, copy_from_source=cfg.copy_from_source
-                )
+            # clone the prim
+            cloner.clone(prim_paths[0], prim_paths[1:], replicate_physics=False, copy_from_source=cfg.copy_from_source)
         # return the source prim
         return prim
 
@@ -291,7 +286,10 @@ Material bindings.
 
 @apply_nested
 def bind_visual_material(
-    prim_path: str, material_path: str, stage: Usd.Stage | None = None, stronger_than_descendants: bool = True
+    prim_path: str | Sdf.Path,
+    material_path: str | Sdf.Path,
+    stage: Usd.Stage | None = None,
+    stronger_than_descendants: bool = True,
 ):
     """Bind a visual material to a prim.
 
@@ -343,7 +341,10 @@ def bind_visual_material(
 
 @apply_nested
 def bind_physics_material(
-    prim_path: str, material_path: str, stage: Usd.Stage | None = None, stronger_than_descendants: bool = True
+    prim_path: str | Sdf.Path,
+    material_path: str | Sdf.Path,
+    stage: Usd.Stage | None = None,
+    stronger_than_descendants: bool = True,
 ):
     """Bind a physics material to a prim.
 
@@ -413,7 +414,12 @@ Exporting.
 """
 
 
-def export_prim_to_file(path: str, source_prim_path: str, target_prim_path: str = None, stage: Usd.Stage | None = None):
+def export_prim_to_file(
+    path: str | Sdf.Path,
+    source_prim_path: str | Sdf.Path,
+    target_prim_path: str | Sdf.Path | None = None,
+    stage: Usd.Stage | None = None,
+):
     """Exports a prim from a given stage to a USD file.
 
     The function creates a new layer at the provided path and copies the prim to the layer.
@@ -431,7 +437,13 @@ def export_prim_to_file(path: str, source_prim_path: str, target_prim_path: str 
     Raises:
         ValueError: If the prim paths are not global (i.e: do not start with '/').
     """
-    # check prim path is global
+    # automatically casting to str in case args
+    # are path types
+    path = str(path)
+    source_prim_path = str(source_prim_path)
+    if target_prim_path is not None:
+        target_prim_path = str(target_prim_path)
+
     if not source_prim_path.startswith("/"):
         raise ValueError(f"Source prim path '{source_prim_path}' is not global. It must start with '/'.")
     if target_prim_path is not None and not target_prim_path.startswith("/"):
@@ -474,7 +486,7 @@ USD Prim properties.
 """
 
 
-def make_uninstanceable(prim_path: str, stage: Usd.Stage | None = None):
+def make_uninstanceable(prim_path: str | Sdf.Path, stage: Usd.Stage | None = None):
     """Check if a prim and its descendants are instanced and make them uninstanceable.
 
     This function checks if the prim at the specified prim path and its descendants are instanced.
@@ -490,6 +502,8 @@ def make_uninstanceable(prim_path: str, stage: Usd.Stage | None = None):
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    # make paths str type if they aren't already
+    prim_path = str(prim_path)
     # check if prim path is global
     if not prim_path.startswith("/"):
         raise ValueError(f"Prim path '{prim_path}' is not global. It must start with '/'.")
@@ -520,7 +534,7 @@ USD Stage traversal.
 
 
 def get_first_matching_child_prim(
-    prim_path: str, predicate: Callable[[Usd.Prim], bool], stage: Usd.Stage | None = None
+    prim_path: str | Sdf.Path, predicate: Callable[[Usd.Prim], bool], stage: Usd.Stage | None = None
 ) -> Usd.Prim | None:
     """Recursively get the first USD Prim at the path string that passes the predicate function
 
@@ -535,6 +549,8 @@ def get_first_matching_child_prim(
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    # make paths str type if they aren't already
+    prim_path = str(prim_path)
     # check if prim path is global
     if not prim_path.startswith("/"):
         raise ValueError(f"Prim path '{prim_path}' is not global. It must start with '/'.")
@@ -560,7 +576,7 @@ def get_first_matching_child_prim(
 
 
 def get_all_matching_child_prims(
-    prim_path: str,
+    prim_path: str | Sdf.Path,
     predicate: Callable[[Usd.Prim], bool] = lambda _: True,
     depth: int | None = None,
     stage: Usd.Stage | None = None,
@@ -581,6 +597,8 @@ def get_all_matching_child_prims(
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    # make paths str type if they aren't already
+    prim_path = str(prim_path)
     # check if prim path is global
     if not prim_path.startswith("/"):
         raise ValueError(f"Prim path '{prim_path}' is not global. It must start with '/'.")

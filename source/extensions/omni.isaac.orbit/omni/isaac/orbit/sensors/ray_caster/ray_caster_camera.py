@@ -50,13 +50,18 @@ class RayCasterCamera(RayCaster):
     UNSUPPORTED_TYPES: ClassVar[set[str]] = {
         "rgb",
         "instance_id_segmentation",
+        "instance_id_segmentation_fast",
         "instance_segmentation",
+        "instance_segmentation_fast",
         "semantic_segmentation",
         "skeleton_data",
         "motion_vectors",
         "bounding_box_2d_tight",
+        "bounding_box_2d_tight_fast",
         "bounding_box_2d_loose",
+        "bounding_box_2d_loose_fast",
         "bounding_box_3d",
+        "bounding_box_3d_fast",
     }
     """A set of sensor types that are not supported by the ray-caster camera."""
 
@@ -142,7 +147,7 @@ class RayCasterCamera(RayCaster):
         if env_ids is None:
             env_ids = slice(None)
         # reset the data
-        # note: this recomputation is useful if one performs randomization on the camera poses.
+        # note: this recomputation is useful if one performs events such as randomizations on the camera poses.
         pos_w, quat_w = self._compute_camera_world_poses(env_ids)
         self._data.pos_w[env_ids] = pos_w
         self._data.quat_w_world[env_ids] = quat_w
