@@ -19,7 +19,7 @@ class UniformPoseWithMinDistCommandCfg(UniformPoseCommandCfg):
     """Configuration for uniform pose command generator."""
 
     class_type: type = UniformPoseWithMinDistCommand
-    
+
     box_name: str = MISSING
     """Name of the box for which the commands are generated."""
 

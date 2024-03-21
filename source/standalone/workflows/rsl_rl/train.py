@@ -10,8 +10,8 @@ from __future__ import annotations
 """Launch Isaac Sim Simulator first."""
 
 import argparse
-import os
 import numpy as np
+import os
 
 from omni.isaac.orbit.app import AppLauncher
 

@@ -97,7 +97,7 @@ def end_ep_vel(
     env: RLTaskEnv,
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
-    #  retreiving velocity
+    #  retrieving velocity
     asset: Articulation = env.scene[asset_cfg.name]
     vel = torch.abs(asset.data.joint_vel[:, :7])
 
@@ -149,11 +149,13 @@ def rotation_distance(quat_a: torch.Tensor, quat_b: torch.Tensor) -> torch.Tenso
     theta = 2 * torch.acos(torch.abs(torch.einsum("ij,ij->i", quat_a, quat_b).unsqueeze(1)))
     return theta.squeeze()
 
+
 def yaw_rotation_distance(quat_a: torch.Tensor, quat_b: torch.Tensor) -> torch.Tensor:
     assert quat_a.shape == quat_b.shape
     yaw_a = quaternion_to_axis_angle(quat_a)[:, 2]
     yaw_b = quaternion_to_axis_angle(quat_b)[:, 2]
     return torch.abs(yaw_a - yaw_b)
+
 
 # From pytorch3d
 def quaternion_to_axis_angle(quaternions: torch.Tensor) -> torch.Tensor:
@@ -163,12 +165,8 @@ def quaternion_to_axis_angle(quaternions: torch.Tensor) -> torch.Tensor:
     eps = 1e-6
     small_angles = angles.abs() < eps
     sin_half_angles_over_angles = torch.empty_like(angles)
-    sin_half_angles_over_angles[~small_angles] = (
-        torch.sin(half_angles[~small_angles]) / angles[~small_angles]
-    )
+    sin_half_angles_over_angles[~small_angles] = torch.sin(half_angles[~small_angles]) / angles[~small_angles]
     # for x small, sin(x/2) is about x/2 - (x/2)^3/6
     # so sin(x/2)/x is about 1/2 - (x*x)/48
-    sin_half_angles_over_angles[small_angles] = (
-        0.5 - (angles[small_angles] * angles[small_angles]) / 48
-    )
+    sin_half_angles_over_angles[small_angles] = 0.5 - (angles[small_angles] * angles[small_angles]) / 48
     return quaternions[..., 1:] / sin_half_angles_over_angles

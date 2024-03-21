@@ -11,7 +11,6 @@ from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import (
     RslRlPpoAlgorithmCfg,
 )
 
-
 # @configclass
 # class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg):
 #     seed = -1
@@ -70,6 +69,7 @@ from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import (
 #         max_grad_norm=1.0,
 #     )
 
+
 @configclass
 class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     seed = -1
@@ -98,6 +98,7 @@ class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         desired_kl=0.01,
         max_grad_norm=1.0,
     )
+
 
 # @configclass
 # class BoxPushingPPORunnerCfg(RslRlOnPolicyRunnerCfg): # TODO ProMP only

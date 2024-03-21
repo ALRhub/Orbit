@@ -98,7 +98,6 @@ def main():
             # env stepping
             obs, _, _, _ = env.step(actions)
             # obs, _= env.reset() # TODO ProMP only
-            
 
     # close the simulator
     env.close()

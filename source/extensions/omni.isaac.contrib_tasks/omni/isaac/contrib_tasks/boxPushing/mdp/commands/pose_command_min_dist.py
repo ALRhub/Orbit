@@ -93,7 +93,7 @@ class UniformPoseWithMinDistCommand(UniformPoseCommand):
         self.pose_command_b[env_ids, 0] = r.uniform_(*self.cfg.ranges.pos_x)
         self.pose_command_b[env_ids, 1] = r.uniform_(*self.cfg.ranges.pos_y)
         self.pose_command_b[env_ids, 2] = r.uniform_(*self.cfg.ranges.pos_z)
-        
+
         for _ in range(self.max_iters):
             distances = torch.norm(self.pose_command_b[env_ids, :3] - box_position_b[env_ids, :], dim=1)
             mask = distances >= self.min_dist
@@ -102,7 +102,9 @@ class UniformPoseWithMinDistCommand(UniformPoseCommand):
                 break
 
             resampled = self.resample_position(env_ids)
-            self.pose_command_b[env_ids, :] = torch.where(mask.unsqueeze(1), self.pose_command_b[env_ids, :], resampled[env_ids, :])
+            self.pose_command_b[env_ids, :] = torch.where(
+                mask.unsqueeze(1), self.pose_command_b[env_ids, :], resampled[env_ids, :]
+            )
 
         # -- orientation
         euler_angles = torch.zeros_like(self.pose_command_b[env_ids, :3])

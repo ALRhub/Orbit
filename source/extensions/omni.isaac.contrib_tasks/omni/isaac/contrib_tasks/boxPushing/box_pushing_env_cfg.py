@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import torch
 from dataclasses import MISSING
 
 import omni.isaac.orbit.sim as sim_utils
@@ -25,9 +26,8 @@ from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import Fra
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import GroundPlaneCfg, UsdFileCfg
 from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
-from omni.isaac.contrib_tasks.boxPushing.mdp.commands.pose_command_min_dist_cfg import UniformPoseWithMinDistCommandCfg
 
-import torch
+from omni.isaac.contrib_tasks.boxPushing.mdp.commands.pose_command_min_dist_cfg import UniformPoseWithMinDistCommandCfg
 
 from . import mdp
 
@@ -96,9 +96,10 @@ class CommandsCfg:
             pos_z=(0.007, 0.007),
             roll=(0.0, 0.0),
             pitch=(0.0, 0.0),
-            yaw=(0, 2*torch.pi),
+            yaw=(0, 2 * torch.pi),
         ),
     )
+
 
 @configclass
 class ActionsCfg:
@@ -152,7 +153,6 @@ class RandomizationCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-
     object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-1.0)
 
     object_goal_position_distance = RewTerm(
@@ -185,7 +185,9 @@ class TerminationsCfg:
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
-    success = DoneTerm(func=mdp.is_success, params={"command_name": "object_pose", "limit_pose_dist": 0.05, "limit_or_dist": 0.5})
+    success = DoneTerm(
+        func=mdp.is_success, params={"command_name": "object_pose", "limit_pose_dist": 0.05, "limit_or_dist": 0.5}
+    )
 
 
 ##

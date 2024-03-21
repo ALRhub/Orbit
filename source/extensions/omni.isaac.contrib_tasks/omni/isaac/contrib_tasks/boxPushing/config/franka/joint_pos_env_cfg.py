@@ -120,15 +120,13 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
     # Random x goal + random init pos
     @property
     def context_mask(self):
-        return np.hstack(
-            [
-                [True] * 9,  # joints position relative
-                [True] * 9,  # joints velocity
-                [True] * 7,  # pose of box
-                [True] * 7,  # pose of target
-                [True] * 7,  # actions
-            ]
-        )
+        return np.hstack([
+            [True] * 9,  # joints position relative
+            [True] * 9,  # joints velocity
+            [True] * 7,  # pose of box
+            [True] * 7,  # pose of target
+            [True] * 7,  # actions
+        ])
 
     @property
     def current_pos(self) -> torch.Tensor:

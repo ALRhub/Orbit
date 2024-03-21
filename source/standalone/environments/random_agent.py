@@ -24,7 +24,7 @@ parser.add_argument(
     type=str,
     default=None,
     help=(
-        "Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP,"
+        "Whether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP,"
         " etc..."
     ),
 )
