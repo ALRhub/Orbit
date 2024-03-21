@@ -41,7 +41,7 @@ def add_rsl_rl_args(parser: argparse.ArgumentParser):
         type=str,
         default=None,
         help=(
-            "Wether to use a motion primitive for the training. The supported ones depend in the environment: ProDMP,"
+            "Wether to use a motion primitive for the training. The supported ones depend in the environment: ProMP"
             " etc..."
         ),
     )

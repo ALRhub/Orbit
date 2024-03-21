@@ -78,13 +78,13 @@ def main():
                 (args_cli.num_envs, env.action_space.shape[0]),
                 device=env.unwrapped.device,
             )
-            action = np.around(np.load("/home/johann/random_sample_numpy.npy"), 4)
+            action = np.around(np.load("/home/johann/dlr_prakt/random_sample_numpy.npy"), 4)
             for i in range(args_cli.num_envs):
                 actions[i] = torch.from_numpy(action)
-                # actions[i] = torch.load("/home/johann/random_sample_torch.pt")
+                # actions[i] = torch.load("/home/johann/dlr_prakt/random_sample_torch.pt")
             # apply actions
             obs, reward, _, _, info = env.step(actions)
-            # torch.save(info["positions"][0], "/home/johann/traj_gen_orbit.pt")
+            # torch.save(info["positions"][0], "/home/johann/dlr_prakt/traj_gen_orbit.pt")
             rewards.append(reward[0].cpu().numpy())
             infos.append(info)
     # close the simulator
@@ -95,7 +95,7 @@ def main():
 def plot_trajectories(env, infos, rewards=None):
     import pickle
 
-    file = open("/home/johann/positions.pkl", "rb")
+    file = open("/home/johann/dlr_prakt/positions.pkl", "rb")
     data = pickle.load(file)
 
     from omni.isaac.orbit.assets import Articulation
