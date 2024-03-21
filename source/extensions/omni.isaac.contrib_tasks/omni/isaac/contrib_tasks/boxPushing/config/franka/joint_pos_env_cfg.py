@@ -39,14 +39,8 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
         self.actions.body_joint_pos = mdp.JointPositionActionCfg(
             asset_name="robot",
             joint_names=["panda_joint.*"],
-            # scale=0.5,
             use_default_offset=True,
         )
-        # self.actions.body_joint_pos = mdp.JointEffortActionCfg(
-        #     asset_name="robot",
-        #     joint_names=["panda_joint.*"],
-        #     # scale=0.5,
-        # )
         self.commands.object_pose.body_name = "panda_hand"
 
         # Set Cube as object
@@ -55,7 +49,6 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
             init_state=RigidObjectCfg.InitialStateCfg(
                 pos=[0.5, 0.0, 0.055],
                 rot=[1, 0, 0, 0],
-                # pos=[0.4, 0.3, 0.055], rot=[1, 0, 0, 0]
             ),
             spawn=UsdFileCfg(
                 usd_path=os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../assets/box.usda"),
@@ -77,7 +70,7 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
         marker_cfg.prim_path = "/Visuals/FrameTransformer"
         self.scene.ee_frame = FrameTransformerCfg(
             prim_path="{ENV_REGEX_NS}/Robot/panda_link0",
-            debug_vis=True,
+            debug_vis=False,
             visualizer_cfg=marker_cfg,
             target_frames=[
                 FrameTransformerCfg.FrameCfg(
@@ -105,7 +98,7 @@ class FrankaBoxPushingEnvCfg_PLAY(FrankaBoxPushingEnvCfg):
 
 class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
     mp_config = {
-        "ProDMP": {
+        "ProMP": {
             "black_box_kwargs": {"verbose": 2},
             "controller_kwargs": {
                 "p_gains": 0.01 * torch.tensor([120.0, 120.0, 120.0, 120.0, 50.0, 30.0, 10.0], device="cuda:0"),
@@ -121,7 +114,7 @@ class FrankaBoxPushingMPWrapper(orbit_black_box_wrapper.OrbitBlackBoxWrapper):
                 "basis_bandwidth_factor": 3,
             },
             "phase_generator_kwargs": {"alpha_phase": 3},
-        },
+        }
     }
 
     # Random x goal + random init pos
