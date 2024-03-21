@@ -153,7 +153,7 @@ def yaw_rotation_distance(quat_a: torch.Tensor, quat_b: torch.Tensor) -> torch.T
     assert quat_a.shape == quat_b.shape
     yaw_a = quaternion_to_axis_angle(quat_a)[:, 2]
     yaw_b = quaternion_to_axis_angle(quat_b)[:, 2]
-    return (yaw_a - yaw_b)
+    return torch.abs(yaw_a - yaw_b)
 
 # From pytorch3d
 def quaternion_to_axis_angle(quaternions: torch.Tensor) -> torch.Tensor:
