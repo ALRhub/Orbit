@@ -128,7 +128,7 @@ class RslRlVecEnvWrapper(VecEnv):
     def get_observations(self) -> tuple[torch.Tensor, dict]:
         """Returns the current observations of the environment."""
         obs_dict = self.unwrapped.observation_manager.compute()
-        obs_dict["policy"] = self.env.observation(obs_dict["policy"])
+        # obs_dict["policy"] = self.env.observation(obs_dict["policy"]) # TODO ProMP only
         return obs_dict["policy"], {"observations": obs_dict}
 
     @property
@@ -149,27 +149,27 @@ class RslRlVecEnvWrapper(VecEnv):
     Operations - MDP
     """
 
-    def seed(self, seed: int = -1) -> int:  # noqa: D102
-        return self.unwrapped.seed(seed)
+    def seed(self, seed: int = -1, torch_deterministic=False) -> int:  # noqa: D102
+        return self.unwrapped.seed(seed, torch_deterministic)
 
     def reset(self) -> tuple[torch.Tensor, dict]:  # noqa: D102
         # reset the environment
-        # obs_dict, _ = self.env.reset()
-        obs, _ = self.env.reset()
+        obs_dict, _ = self.env.reset()
+        # obs, _ = self.env.reset() # TODO ProMP only
         # return observations
-        # return obs_dict["policy"], {"observations": obs_dict}
-        return obs, {"observations": {"policy": obs}}
+        return obs_dict["policy"], {"observations": obs_dict}
+        # return obs, {"observations": {"policy": obs}} # TODO ProMP only
 
     def step(self, actions: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, dict]:
         # record step information
-        # obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
-        obs, rew, terminated, truncated, extras = self.env.step(actions)
+        obs_dict, rew, terminated, truncated, extras = self.env.step(actions)
+        # obs, rew, terminated, truncated, extras = self.env.step(actions) # TODO ProMP only
         # compute dones for compatibility with RSL-RL
         dones = (terminated | truncated).to(dtype=torch.long)
         # move extra observations to the extras dict
-        # obs = obs_dict["policy"]
-        # extras["observations"] = obs_dict
-        extras["observations"] = {"policy": obs}
+        obs = obs_dict["policy"]
+        extras["observations"] = obs_dict
+        # extras["observations"] = {"policy": obs} # TODO ProMP only
         # move time out information to the extras dict
         # this is only needed for infinite horizon tasks
         if not self.unwrapped.cfg.is_finite_horizon:

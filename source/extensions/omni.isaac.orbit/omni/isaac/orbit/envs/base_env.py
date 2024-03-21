@@ -272,7 +272,7 @@ class BaseEnv:
         return self.observation_manager.compute(), self.extras
 
     @staticmethod
-    def seed(seed: int = -1) -> int:
+    def seed(seed: int = -1, torch_deterministic=False) -> int:
         """Set the seed for the environment.
 
         Args:
@@ -289,7 +289,7 @@ class BaseEnv:
         except ModuleNotFoundError:
             pass
         # set seed for torch and other libraries
-        return torch_utils.set_seed(seed)
+        return torch_utils.set_seed(seed, torch_deterministic)
 
     def close(self):
         """Cleanup for the environment."""
