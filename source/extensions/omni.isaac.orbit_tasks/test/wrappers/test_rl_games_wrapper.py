@@ -7,13 +7,10 @@ from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
 
-import os
-
-from omni.isaac.orbit.app import AppLauncher
+from omni.isaac.orbit.app import AppLauncher, run_tests
 
 # launch the simulator
-app_experience = f"{os.environ['EXP_PATH']}/omni.isaac.sim.python.gym.headless.kit"
-app_launcher = AppLauncher(headless=True, experience=app_experience)
+app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
 
@@ -117,7 +114,4 @@ class TestRlGamesVecEnvWrapper(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    # run main
-    unittest.main(verbosity=2, exit=False)
-    # close sim app
-    simulation_app.close()
+    run_tests()
