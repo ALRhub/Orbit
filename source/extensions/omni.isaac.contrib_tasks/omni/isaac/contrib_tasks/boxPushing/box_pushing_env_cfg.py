@@ -19,7 +19,6 @@ from omni.isaac.orbit.managers import ObservationGroupCfg as ObsGroup
 from omni.isaac.orbit.managers import ObservationTermCfg as ObsTerm
 from omni.isaac.orbit.managers import RandomizationTermCfg as RandTerm
 from omni.isaac.orbit.managers import RewardTermCfg as RewTerm
-from omni.isaac.orbit.managers import SceneEntityCfg
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.scene import InteractiveSceneCfg
 from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import FrameTransformerCfg
@@ -117,8 +116,8 @@ class ObservationsCfg:
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
 
-        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         # joint_pos_abs = ObsTerm(func=mdp.joint_pos_abs)
+        joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
         object_pose = ObsTerm(func=mdp.object_pose_in_robot_root_frame)
         target_object_pose = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
@@ -167,7 +166,6 @@ class RewardsCfg:
         weight=-2.0,
     )
 
-    # energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-2)
     energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-4)
 
     joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
@@ -175,8 +173,6 @@ class RewardsCfg:
     joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
-
-    # end_ep_vel = RewTerm(func=mdp.end_ep_vel, weight=-1.0)
 
 
 @configclass

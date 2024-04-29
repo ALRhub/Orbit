@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-import math
 from dataclasses import MISSING
 
 from omni.isaac.orbit.envs.mdp.commands.commands_cfg import UniformPoseCommandCfg
