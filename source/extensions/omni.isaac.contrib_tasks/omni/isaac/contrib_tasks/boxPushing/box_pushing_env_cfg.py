@@ -174,6 +174,31 @@ class DenseRewardCfg:
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
 
+@configclass
+class TemporalSparseRewardCfg:  # TODO set weights
+    """Reward terms for the MDP."""
+
+    object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-1.0)
+
+    object_goal_position_distance = RewTerm(
+        func=mdp.object_goal_position_distance,
+        params={"end_ep": True, "end_ep_weight": 100.0, "command_name": "object_pose"},
+        weight=-3.5,
+    )
+
+    object_goal_orientation_distance = RewTerm(
+        func=mdp.object_goal_orientation_distance,
+        params={"command_name": "object_pose"},
+        weight=-2.0,
+    )
+
+    energy_cost = RewTerm(func=mdp.action_l2, weight=-5e-4)
+
+    joint_position_limit = RewTerm(func=mdp.joint_pos_limits_bp, weight=-1.0)
+
+    joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
+
+    rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
 
 @configclass
 class TerminationsCfg:
@@ -202,7 +227,8 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
     actions: ActionsCfg = ActionsCfg()
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
-    rewards: DenseRewardCfg = DenseRewardCfg()
+    # rewards: will be populated by agent env cfg
+    rewards = MISSING
     terminations: TerminationsCfg = TerminationsCfg()
     randomization: EventCfg = EventCfg()
 
