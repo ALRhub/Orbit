@@ -17,7 +17,7 @@ from omni.isaac.orbit.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCf
 from omni.isaac.orbit.envs import RLTaskEnvCfg
 from omni.isaac.orbit.managers import ObservationGroupCfg as ObsGroup
 from omni.isaac.orbit.managers import ObservationTermCfg as ObsTerm
-from omni.isaac.orbit.managers import RandomizationTermCfg as RandTerm
+from omni.isaac.orbit.managers import EventTermCfg as EventTerm
 from omni.isaac.orbit.managers import RewardTermCfg as RewTerm
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.scene import InteractiveSceneCfg
@@ -132,12 +132,12 @@ class ObservationsCfg:
 
 
 @configclass
-class RandomizationCfg:
+class EventCfg:
     """Configuration for randomization."""
 
-    reset_all = RandTerm(func=mdp.reset_scene_to_default, mode="reset")
+    reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
-    # reset_object_position = RandTerm(
+    # reset_object_position = EventTerm(
     #     func=mdp.reset_root_state_uniform,
     #     mode="reset",
     #     params={
@@ -149,7 +149,7 @@ class RandomizationCfg:
 
 
 @configclass
-class RewardsCfg:
+class DenseRewardCfg:
     """Reward terms for the MDP."""
 
     object_ee_distance = RewTerm(func=mdp.object_ee_distance, weight=-1.0)
@@ -202,9 +202,9 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
     actions: ActionsCfg = ActionsCfg()
     commands: CommandsCfg = CommandsCfg()
     # MDP settings
-    rewards: RewardsCfg = RewardsCfg()
+    rewards: DenseRewardCfg = DenseRewardCfg()
     terminations: TerminationsCfg = TerminationsCfg()
-    randomization: RandomizationCfg = RandomizationCfg()
+    randomization: EventCfg = EventCfg()
 
     def __post_init__(self):
         """Post initialization."""
