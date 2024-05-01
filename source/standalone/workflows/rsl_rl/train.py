@@ -89,8 +89,6 @@ def main():
     log_dir = os.path.join(log_root_path, log_dir)
 
     # create isaac environment
-    # env = gym.make(args_cli.task, cfg=env_cfg, render_mode="rgb_array" if args_cli.video else None)
-
     task_name = args_cli.task
     if args_cli.motion_primitive is not None:
         task_name = "gym_" + args_cli.motion_primitive + "/" + task_name
