@@ -515,7 +515,7 @@ def Xform "panda" (
         }
 
         def Mesh "Push_rod" (
-            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxConvexHullCollisionAPI", "PhysicsMeshCollisionAPI", "PhysxCookedDataAPI:convexHull"]
+            prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxConvexHullCollisionAPI", "PhysicsMeshCollisionAPI", "PhysxCookedDataAPI:convexHull", "PhysicsMassAPI"]
             instanceable = true
         )
         {
@@ -537,6 +537,8 @@ def Xform "panda" (
             double3 xformOp:scale = (0.02, 0.02, 0.2)
             double3 xformOp:translate = (-0.00022940314575559118, 0.00030651610263239017, 0.13385141353309285)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            float physics:density = 1000
         }
     }
 

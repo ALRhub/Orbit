@@ -15,9 +15,9 @@ from dataclasses import MISSING
 import omni.isaac.orbit.sim as sim_utils
 from omni.isaac.orbit.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from omni.isaac.orbit.envs import RLTaskEnvCfg
+from omni.isaac.orbit.managers import EventTermCfg as EventTerm
 from omni.isaac.orbit.managers import ObservationGroupCfg as ObsGroup
 from omni.isaac.orbit.managers import ObservationTermCfg as ObsTerm
-from omni.isaac.orbit.managers import EventTermCfg as EventTerm
 from omni.isaac.orbit.managers import RewardTermCfg as RewTerm
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.scene import InteractiveSceneCfg
@@ -174,6 +174,7 @@ class DenseRewardCfg:
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
 
+
 @configclass
 class TemporalSparseRewardCfg:  # TODO set weights
     """Reward terms for the MDP."""
@@ -199,6 +200,7 @@ class TemporalSparseRewardCfg:  # TODO set weights
     joint_velocity_limit = RewTerm(func=mdp.joint_vel_limits_bp, params={"soft_ratio": 1.0}, weight=-1.0)
 
     rod_inclined_angle = RewTerm(func=mdp.rod_inclined_angle, weight=-1.0)
+
 
 @configclass
 class TerminationsCfg:
@@ -230,7 +232,7 @@ class BoxPushingEnvCfg(RLTaskEnvCfg):
     # rewards: will be populated by agent env cfg
     rewards = MISSING
     terminations: TerminationsCfg = TerminationsCfg()
-    randomization: EventCfg = EventCfg()
+    events: EventCfg = EventCfg()
 
     def __post_init__(self):
         """Post initialization."""

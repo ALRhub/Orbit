@@ -39,7 +39,7 @@ FRANKA_PANDA_CFG = ArticulationCfg(
     init_state=ArticulationCfg.InitialStateCfg(
         joint_pos={
             "panda_joint1": 0.0,
-            "panda_joint2": 0.0,
+            "panda_joint2": -0.369,
             "panda_joint3": 0.0,
             "panda_joint4": -2.345,
             "panda_joint5": 0.0,
