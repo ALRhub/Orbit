@@ -5,10 +5,7 @@
 
 """Script to run an environment with zero action agent."""
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
-
 
 import argparse
 
@@ -36,7 +33,6 @@ simulation_app = app_launcher.app
 import gymnasium as gym
 import torch
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import parse_env_cfg
 

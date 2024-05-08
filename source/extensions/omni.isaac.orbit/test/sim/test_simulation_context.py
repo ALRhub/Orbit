@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
 
 from omni.isaac.orbit.app import AppLauncher, run_tests
@@ -63,6 +61,7 @@ class TestSimulationContext(unittest.TestCase):
         # check valid settings
         self.assertEqual(sim.get_physics_dt(), cfg.dt)
         self.assertEqual(sim.get_rendering_dt(), cfg.dt * cfg.substeps)
+        self.assertFalse(sim.has_rtx_sensors())
         # check valid paths
         self.assertTrue(prim_utils.is_prim_path_valid("/Physics/PhysX"))
         self.assertTrue(prim_utils.is_prim_path_valid("/Physics/PhysX/defaultMaterial"))

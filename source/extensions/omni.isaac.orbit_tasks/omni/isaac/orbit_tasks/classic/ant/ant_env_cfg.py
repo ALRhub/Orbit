@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
-
 import omni.isaac.orbit.sim as sim_utils
 from omni.isaac.orbit.actuators import ImplicitActuatorCfg
 from omni.isaac.orbit.assets import ArticulationCfg, AssetBaseCfg
@@ -67,7 +65,13 @@ class MySceneCfg(InteractiveSceneCfg):
         ),
         init_state=ArticulationCfg.InitialStateCfg(
             pos=(0.0, 0.0, 0.5),
-            joint_pos={".*": 0.0},
+            joint_pos={
+                ".*_leg": 0.0,
+                "front_left_foot": 0.785398,  # 45 degrees
+                "front_right_foot": -0.785398,
+                "left_back_foot": -0.785398,
+                "right_back_foot": 0.785398,
+            },
         ),
         actuators={
             "body": ImplicitActuatorCfg(
@@ -120,7 +124,7 @@ class ObservationsCfg:
         base_angle_to_target = ObsTerm(func=mdp.base_angle_to_target, params={"target_pos": (1000.0, 0.0, 0.0)})
         base_up_proj = ObsTerm(func=mdp.base_up_proj)
         base_heading_proj = ObsTerm(func=mdp.base_heading_proj, params={"target_pos": (1000.0, 0.0, 0.0)})
-        joint_pos_norm = ObsTerm(func=mdp.joint_pos_norm)
+        joint_pos_norm = ObsTerm(func=mdp.joint_pos_limit_normalized)
         joint_vel_rel = ObsTerm(func=mdp.joint_vel_rel, scale=0.2)
         feet_body_forces = ObsTerm(
             func=mdp.body_incoming_wrench,
@@ -192,7 +196,7 @@ class TerminationsCfg:
     # (1) Terminate if the episode length is exceeded
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     # (2) Terminate if the robot falls
-    torso_height = DoneTerm(func=mdp.base_height, params={"minimum_height": 0.31})
+    torso_height = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": 0.31})
 
 
 @configclass

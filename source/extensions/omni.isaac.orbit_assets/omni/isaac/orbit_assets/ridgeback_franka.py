@@ -20,6 +20,7 @@ from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 RIDGEBACK_FRANKA_PANDA_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
         usd_path=f"{ISAAC_NUCLEUS_DIR}/Robots/Clearpath/RidgebackFranka/ridgeback_franka.usd",
+        articulation_props=sim_utils.ArticulationRootPropertiesCfg(enabled_self_collisions=False),
         activate_contact_sensors=False,
     ),
     init_state=ArticulationCfg.InitialStateCfg(
@@ -34,7 +35,7 @@ RIDGEBACK_FRANKA_PANDA_CFG = ArticulationCfg(
             "panda_joint3": 0.0,
             "panda_joint4": -2.810,
             "panda_joint5": 0.0,
-            "panda_joint6": 3.037,
+            "panda_joint6": 2.0,
             "panda_joint7": 0.741,
             # tool
             "panda_finger_joint.*": 0.035,
@@ -76,8 +77,8 @@ RIDGEBACK_FRANKA_PANDA_CFG = ArticulationCfg(
 
 The following control configuration is used:
 
-* Base: velocity control with damping
-* Arm: position control with damping (contains default position offsets)
-* Hand: mimic control
+* Base: velocity control
+* Arm: position control with damping
+* Hand: position control with damping
 
 """

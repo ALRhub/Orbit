@@ -5,10 +5,7 @@
 
 """Script to train RL agent with RSL-RL."""
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
-
 
 import argparse
 
@@ -53,7 +50,6 @@ from omni.isaac.orbit.envs import RLTaskEnvCfg
 from omni.isaac.orbit.utils.dict import print_dict
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import get_checkpoint_path, parse_env_cfg
 from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper

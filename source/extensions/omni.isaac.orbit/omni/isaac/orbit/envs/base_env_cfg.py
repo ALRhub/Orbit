@@ -9,9 +9,6 @@ This module defines the general configuration of the environment. It includes pa
 configuring the environment instances, viewer settings, and simulation parameters.
 """
 
-from __future__ import annotations
-
-import warnings
 from dataclasses import MISSING
 from typing import Literal
 
@@ -141,12 +138,3 @@ class BaseEnvCfg:
         attribute to configure the randomization settings.
 
     """
-
-    def __post_init__(self):
-        if self.randomization is not None:
-            warnings.warn(
-                "The 'randomization' attribute is deprecated and will be removed in a future release. "
-                "Please use the 'events' attribute to configure the randomization settings.",
-                DeprecationWarning,
-            )
-            self.events = self.randomization

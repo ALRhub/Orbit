@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
-
 import builtins
 import enum
 import numpy as np
@@ -21,7 +19,7 @@ import omni.physx
 from omni.isaac.core.simulation_context import SimulationContext as _SimulationContext
 from omni.isaac.core.utils.viewports import set_camera_view
 from omni.isaac.version import get_version
-from pxr import Gf, Usd
+from pxr import Gf, PhysxSchema, Usd, UsdPhysics
 
 from .simulation_cfg import SimulationCfg
 from .spawners import DomeLightCfg, GroundPlaneCfg
@@ -38,7 +36,7 @@ class SimulationContext(_SimulationContext):
     * playing, pausing, stepping and stopping the simulation
     * adding and removing callbacks to different simulation events such as physics stepping, rendering, etc.
 
-    This class inherits from the `omni.isaac.core.simulation_context.SimulationContext`_ class and
+    This class inherits from the :class:`omni.isaac.core.simulation_context.SimulationContext` class and
     adds additional functionalities such as setting up the simulation context with a configuration object,
     exposing other commonly used simulator-related functions, and performing version checks of Isaac Sim
     to ensure compatibility between releases.
@@ -67,8 +65,6 @@ class SimulationContext(_SimulationContext):
     Based on above, for most functions in this class there is an equivalent function that is suffixed
     with ``_async``. The ``_async`` functions are used in the Omniverse extension mode and
     the non-``_async`` functions are used in the standalone python script mode.
-
-    .. _omni.isaac.core.simulation_context.SimulationContext: https://docs.omniverse.nvidia.com/py/isaacsim/source/extensions/omni.isaac.core/docs/index.html#module-omni.isaac.core.simulation_context
     """
 
     class RenderMode(enum.IntEnum):
@@ -147,7 +143,7 @@ class SimulationContext(_SimulationContext):
         # read flag for whether the orbit viewport capture pipeline will be used,
         # casting None to False if the flag doesn't exist
         # this flag is set from the AppLauncher class
-        self._offscreen_render = bool(carb_settings_iface.get("/orbit/offscreen_render/enabled"))
+        self._offscreen_render = bool(carb_settings_iface.get("/orbit/render/offscreen"))
         # flag for whether any GUI will be rendered (local, livestreamed or viewport)
         self._has_gui = self._local_gui or self._livestream_gui
 
@@ -236,6 +232,21 @@ class SimulationContext(_SimulationContext):
         True if the simulation has a GUI enabled either locally or live-streamed.
         """
         return self._has_gui
+
+    def has_rtx_sensors(self) -> bool:
+        """Returns whether the simulation has any RTX-rendering related sensors.
+
+        This function returns the value of the simulation parameter ``"/orbit/render/rtx_sensors"``.
+        The parameter is set to True when instances of RTX-related sensors (cameras or LiDARs) are
+        created using Orbit's sensor classes.
+
+        True if the simulation has RTX sensors (such as USD Cameras or LiDARs).
+
+        For more information, please check `NVIDIA RTX documentation`_.
+
+        .. _NVIDIA RTX documentation: https://www.nvidia.com/design-visualization/solutions/rendering/
+        """
+        return self._settings.get_as_bool("/orbit/render/rtx_sensors")
 
     def is_fabric_enabled(self) -> bool:
         """Returns whether the fabric interface is enabled.
@@ -490,8 +501,8 @@ class SimulationContext(_SimulationContext):
     def _set_additional_physx_params(self):
         """Sets additional PhysX parameters that are not directly supported by the parent class."""
         # obtain the physics scene api
-        physics_scene = self._physics_context._physics_scene  # pyright: ignore [reportPrivateUsage]
-        physx_scene_api = self._physics_context._physx_scene_api  # pyright: ignore [reportPrivateUsage]
+        physics_scene: UsdPhysics.Scene = self._physics_context._physics_scene
+        physx_scene_api: PhysxSchema.PhysxSceneAPI = self._physics_context._physx_scene_api
         # assert that scene api is not None
         if physx_scene_api is None:
             raise RuntimeError("Physics scene API is None! Please create the scene first.")

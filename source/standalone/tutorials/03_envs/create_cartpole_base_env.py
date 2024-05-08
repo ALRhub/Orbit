@@ -8,8 +8,6 @@ This script demonstrates how to create a simple environment with a cartpole. It 
 scene, action, observation and event managers to create an environment.
 """
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
 
 
@@ -79,11 +77,12 @@ class EventCfg:
 
     # on startup
     add_pole_mass = EventTerm(
-        func=mdp.add_body_mass,
+        func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=["pole"]),
             "mass_range": (0.1, 0.5),
+            "operation": "add",
         },
     )
 

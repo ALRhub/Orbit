@@ -10,10 +10,7 @@ we recommend using smaller number of environments. Otherwise,
 there will be significant overhead in GPU->CPU transfer.
 """
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
-
 
 import argparse
 
@@ -55,7 +52,6 @@ from stable_baselines3.common.vec_env import VecNormalize
 from omni.isaac.orbit.utils.dict import print_dict
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import load_cfg_from_registry, parse_env_cfg
 from omni.isaac.orbit_tasks.utils.wrappers.sb3 import Sb3VecEnvWrapper, process_sb3_cfg

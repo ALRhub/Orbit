@@ -5,6 +5,7 @@
 
 """Wrapping around warp kernels for compatibility with torch tensors."""
 
+# needed to import for allowing type-hinting: torch.Tensor | None
 from __future__ import annotations
 
 import numpy as np

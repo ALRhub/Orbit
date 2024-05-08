@@ -5,8 +5,6 @@
 
 """Script to play a checkpoint if an RL agent from RL-Games."""
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
 
 import argparse
@@ -50,7 +48,6 @@ from rl_games.torch_runner import Runner
 
 from omni.isaac.orbit.utils.assets import retrieve_file_path
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import get_checkpoint_path, load_cfg_from_registry, parse_env_cfg
 from omni.isaac.orbit_tasks.utils.wrappers.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper

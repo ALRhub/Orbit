@@ -3,13 +3,13 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
-
 import builtins
 import torch
+import warnings
 from collections.abc import Sequence
 from typing import Any, Dict
 
+import carb
 import omni.isaac.core.utils.torch as torch_utils
 
 from omni.isaac.orbit.managers import ActionManager, EventManager, ObservationManager
@@ -99,7 +99,9 @@ class BaseEnv:
 
         # create a simulation context to control the simulator
         if SimulationContext.instance() is None:
-            self.sim = SimulationContext(self.cfg.sim)
+            # the type-annotation is required to avoid a type-checking error
+            # since it gets confused with Isaac Sim's SimulationContext class
+            self.sim: SimulationContext = SimulationContext(self.cfg.sim)
         else:
             raise RuntimeError("Simulation context already exists. Cannot create a new one.")
 
@@ -202,6 +204,17 @@ class BaseEnv:
             :meth:`SimulationContext.reset_async` and it isn't possible to call async functions in the constructor.
 
         """
+        # check the configs
+        if self.cfg.randomization is not None:
+            msg = (
+                "The 'randomization' attribute is deprecated and will be removed in a future release. "
+                "Please use the 'events' attribute to configure the randomization settings."
+            )
+            warnings.warn(msg, category=DeprecationWarning)
+            carb.log_warn(msg)
+            # set the randomization as events (for backward compatibility)
+            self.cfg.events = self.cfg.randomization
+
         # prepare the managers
         # -- action manager
         self.action_manager = ActionManager(self.cfg.actions, self)
@@ -239,7 +252,7 @@ class BaseEnv:
         # return observations
         return self.observation_manager.compute(), self.extras
 
-    def step(self, action: torch.Tensor) -> VecEnvObs:
+    def step(self, action: torch.Tensor) -> tuple[VecEnvObs, dict]:
         """Execute one time-step of the environment's dynamics.
 
         The environment steps forward at a fixed time-step, while the physics simulation is
@@ -267,7 +280,7 @@ class BaseEnv:
             # update buffers at sim dt
             self.scene.update(dt=self.physics_dt)
         # perform rendering if gui is enabled
-        if self.sim.has_gui():
+        if self.sim.has_gui() or self.sim.has_rtx_sensors():
             self.sim.render()
 
         # post-step: step interval event

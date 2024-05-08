@@ -5,10 +5,7 @@
 
 """Script to collect demonstrations with Orbit environments."""
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
-
 
 import argparse
 
@@ -42,7 +39,6 @@ from omni.isaac.orbit.devices import Se3Keyboard, Se3SpaceMouse
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.utils.io import dump_pickle, dump_yaml
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
 from omni.isaac.orbit_tasks.utils.data_collector import RobomimicDataCollector
@@ -140,12 +136,14 @@ def main():
                 collector_interface.add(f"obs/{key}", value)
             # -- actions
             collector_interface.add("actions", actions)
+
             # perform action on environment
             obs_dict, rewards, terminated, truncated, info = env.step(actions)
             dones = terminated | truncated
             # check that simulation is stopped or not
             if env.unwrapped.sim.is_stopped():
                 break
+
             # robomimic only cares about policy observations
             # store signals from the environment
             # -- next_obs
@@ -162,6 +160,10 @@ def main():
             # flush data from collector for successful environments
             reset_env_ids = dones.nonzero(as_tuple=False).squeeze(-1)
             collector_interface.flush(reset_env_ids)
+
+            # check if enough data is collected
+            if collector_interface.is_stopped():
+                break
 
     # close the simulator
     collector_interface.close()

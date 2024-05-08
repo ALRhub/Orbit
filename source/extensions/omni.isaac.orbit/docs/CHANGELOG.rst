@@ -1,12 +1,123 @@
 Changelog
 ---------
 
+0.16.2 (2024-04-26)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed parsing of filter prim path expressions in the :class:`omni.isaac.orbit.sensors.ContactSensor` class.
+  Earlier, the filter prim paths given to the physics view was not being parsed since they were specified as
+  regex expressions instead of glob expressions.
+
+
+0.16.1 (2024-04-20)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added attribute :attr:`omni.isaac.orbit.sim.ArticulationRootPropertiesCfg.fix_root_link` to fix the root link
+  of an articulation to the world frame.
+
+
+0.16.0 (2024-04-16)
+~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added the function :meth:`omni.isaac.orbit.utils.math.quat_unique` to standardize quaternion representations,
+  i.e. always have a non-negative real part.
+* Added events terms for randomizing mass by scale, simulation joint properties (stiffness, damping, armature,
+  and friction)
+
+Fixed
+^^^^^
+
+* Added clamping of joint positions and velocities in event terms for resetting joints. The simulation does not
+  throw an error if the set values are out of their range. Hence, users are expected to clamp them before setting.
+* Fixed :class:`omni.isaac.orbit.envs.mdp.EMAJointPositionToLimitsActionCfg` to smoothen the actions
+  at environment frequency instead of simulation frequency.
+
+* Renamed the following functions in :meth:`omni.isaac.orbit.envs.mdp` to avoid confusions:
+
+  * Observation: :meth:`joint_pos_norm` -> :meth:`joint_pos_limit_normalized`
+  * Action: :class:`ExponentialMovingAverageJointPositionAction` -> :class:`EMAJointPositionToLimitsAction`
+  * Termination: :meth:`base_height` -> :meth:`root_height_below_minimum`
+  * Termination: :meth:`joint_pos_limit` -> :meth:`joint_pos_out_of_limit`
+  * Termination: :meth:`joint_pos_manual_limit` -> :meth:`joint_pos_out_of_manual_limit`
+  * Termination: :meth:`joint_vel_limit` -> :meth:`joint_vel_out_of_limit`
+  * Termination: :meth:`joint_vel_manual_limit` -> :meth:`joint_vel_out_of_manual_limit`
+  * Termination: :meth:`joint_torque_limit` -> :meth:`joint_effort_out_of_limit`
+
+Deprecated
+^^^^^^^^^^
+
+* Deprecated the function :meth:`omni.isaac.orbit.envs.mdp.add_body_mass` in favor of
+  :meth:`omni.isaac.orbit.envs.mdp.randomize_rigid_body_mass`. This supports randomizing the mass based on different
+  operations (add, scale, or set) and sampling distributions.
+
+
+0.15.12 (2024-04-16)
+~~~~~~~~~~~~~~~~~~~~
+
+Changed
+^^^^^^^
+
+* Replaced calls to the ``check_file_path`` function in the :mod:`omni.isaac.orbit.sim.spawners.from_files`
+  with the USD stage resolve identifier function. This helps speed up the loading of assets from file paths
+  by avoiding Nucleus server calls.
+
+
+0.15.11 (2024-04-15)
+~~~~~~~~~~~~~~~~~~~~
+
+Added
+^^^^^
+
+* Added the :meth:`omni.isaac.orbit.sim.SimulationContext.has_rtx_sensors` method to check if any
+  RTX-related sensors such as cameras have been created in the simulation. This is useful to determine
+  if simulation requires RTX rendering during step or not.
+
+Fixed
+^^^^^
+
+* Fixed the rendering of RTX-related sensors such as cameras inside the :class:`omni.isaac.orbit.envs.RLTaskEnv` class.
+  Earlier the rendering did not happen inside the step function, which caused the sensor data to be empty.
+
+
+0.15.10 (2024-04-11)
+~~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed sharing of the same memory address between returned tensors from observation terms
+  in the :class:`omni.isaac.orbit.managers.ObservationManager` class. Earlier, the returned
+  tensors could map to the same memory address, causing issues when the tensors were modified
+  during scaling, clipping or other operations.
+
+
+0.15.9 (2024-04-04)
+~~~~~~~~~~~~~~~~~~~
+
+Fixed
+^^^^^
+
+* Fixed assignment of individual termination terms inside the :class:`omni.isaac.orbit.managers.TerminationManager`
+  class. Earlier, the terms were being assigned their values through an OR operation which resulted in incorrect
+  values. This regression was introduced in version 0.15.1.
+
+
 0.15.8 (2024-04-02)
 ~~~~~~~~~~~~~~~~~~~
 
 Added
 ^^^^^
-* Adds option to define ordering of points for the mesh-grid generation in the
+
+* Added option to define ordering of points for the mesh-grid generation in the
   :func:`omni.isaac.orbit.sensors.ray_caster.patterns.grid_pattern`. This parameter defaults to 'xy'
   for backward compatibility.
 
@@ -62,7 +173,8 @@ Added
 Fixed
 ^^^^^
 
-* Fixed the NonHolonomicActionCfg variable naming from joint_vel to _joint_vel_command to match the initialized variable in the init() function.
+* Fixed the :class:`omni.isaac.orbit.envs.mdp.actions.NonHolonomicActionCfg` class to use
+  the correct variable when applying actions.
 
 
 0.15.3 (2024-03-21)
@@ -163,7 +275,7 @@ Added
 ^^^^^
 
 * Added support for the following data types inside the :class:`omni.isaac.orbit.sensors.Camera` class:
-  ``instance_segmentation_fast`` and ``instance_id_segmentation_fast``. These are are GPU-supported annotations
+  ``instance_segmentation_fast`` and ``instance_id_segmentation_fast``. These are GPU-supported annotations
   and are faster than the regular annotations.
 
 Fixed

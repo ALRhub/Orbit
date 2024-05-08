@@ -5,10 +5,7 @@
 
 """Script to run a keyboard teleoperation with Orbit manipulation environments."""
 
-from __future__ import annotations
-
 """Launch Isaac Sim Simulator first."""
-
 
 import argparse
 
@@ -43,7 +40,6 @@ import carb
 
 from omni.isaac.orbit.devices import Se3Gamepad, Se3Keyboard, Se3SpaceMouse
 
-import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import parse_env_cfg
 

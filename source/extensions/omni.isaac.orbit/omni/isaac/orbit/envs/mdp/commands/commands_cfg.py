@@ -3,8 +3,6 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-from __future__ import annotations
-
 import math
 from dataclasses import MISSING
 
@@ -106,6 +104,12 @@ class UniformPoseCommandCfg(CommandTermCfg):
     """Name of the asset in the environment for which the commands are generated."""
     body_name: str = MISSING
     """Name of the body in the asset for which the commands are generated."""
+
+    make_quat_unique: bool = False
+    """Whether to make the quaternion unique or not. Defaults to False.
+
+    If True, the quaternion is made unique by ensuring the real part is positive.
+    """
 
     @configclass
     class Ranges:

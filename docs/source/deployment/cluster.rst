@@ -57,7 +57,7 @@ the user cluster password from being requested multiple times.
 Configuring the cluster parameters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-First, you need to configure the cluster-specific parameters in ``docker/.env`` file.
+First, you need to configure the cluster-specific parameters in ``docker/.env.base`` file.
 The following describes the parameters that need to be configured:
 
 - ``CLUSTER_ISAAC_SIM_CACHE_DIR``:
@@ -91,11 +91,18 @@ To export to a singularity image, execute the following command:
 
 .. code:: bash
 
-    ./docker/container.sh push
+    ./docker/container.sh push [profile]
 
 This command will create a singularity image under ``docker/exports`` directory and
 upload it to the defined location on the cluster. Be aware that creating the singularity
 image can take a while.
+``[profile]`` is an optional argument that specifies the container profile to be used. If no profile is
+specified, the default profile ``base`` will be used.
+
+.. note::
+  By default, the singularity image is created without root access by providing the ``--fakeroot`` flag to
+  the ``apptainer build`` command. In case the image creation fails, you can try to create it with root
+  access by removing the flag in ``docker/container.sh``.
 
 
 Job Submission and Execution
@@ -136,13 +143,18 @@ To submit a job on the cluster, the following command can be used:
 
 .. code:: bash
 
-    ./docker/container.sh job "argument1" "argument2" ...
+    ./docker/container.sh job [profile] "argument1" "argument2" ...
 
 This command will copy the latest changes in your code to the cluster and submit a job. Please ensure that
 your Python executable's output is stored under ``orbit/logs`` as this directory will be copied again
 from the compute node to ``CLUSTER_ORBIT_DIR``.
 
-The training arguments anove are passed to the Python executable. As an example, the standard
+``[profile]`` is an optional argument that specifies which singularity image corresponding to the  container profile
+will be used. If no profile is specified, the default profile ``base`` will be used. The profile has be defined
+directlty after the ``job`` command. All other arguments are passed to the Python executable. If no profile is
+defined, all arguments are passed to the Python executable.
+
+The training arguments are passed to the Python executable. As an example, the standard
 ANYmal rough terrain locomotion training can be executed with the following command:
 
 .. code:: bash
