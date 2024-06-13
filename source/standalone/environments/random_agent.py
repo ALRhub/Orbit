@@ -82,7 +82,6 @@ def main():
             action = np.around(np.load("/home/johann/dlr_prakt/random_sample_numpy.npy"), 4)
             for i in range(args_cli.num_envs):
                 actions[i] = torch.from_numpy(action)
-                # actions[i] = torch.load("/home/johann/dlr_prakt/random_sample_torch.pt")
             # apply actions
             obs, reward, _, _, info = env.step(actions)
             # torch.save(info["positions"][0], "/home/johann/dlr_prakt/traj_gen_orbit.pt")
@@ -96,6 +95,8 @@ def main():
 def plot_trajectories(env, infos, rewards=None):
     import pickle
 
+    import tikzplotlib
+
     file = open("/home/johann/dlr_prakt/positions.pkl", "rb")
     data = pickle.load(file)
 
@@ -106,25 +107,29 @@ def plot_trajectories(env, infos, rewards=None):
 
     xdim = 2
     ydim = 4
-    _, axs = plt.subplots(xdim, ydim)
-    mse = []
+    fig, axs = plt.subplots(xdim, ydim)
+    # mse = []
     for i in range(len(data)):
-        ref_traj = infos[i]["positions"][0].transpose(0, 1).cpu().tolist()
+        ref_traj_fancy_gym = data[i]["positions"].T.tolist()
+        ref_traj_orbit = infos[i]["positions"][0].transpose(0, 1).cpu().tolist()
         orbit_joint_obs = infos[i]["step_observations"][0, :, :7].transpose(0, 1).cpu().tolist()
-        fancy_gym_joint_obs = data[i]["step_observations"][:, :7].transpose().tolist()
+        fancy_gym_joint_obs = data[i]["step_observations"][:, :7].T.tolist()
         for i in range(xdim):
             for j in range(ydim):
                 if i != 1 or j != 3:
                     index = i * 4 + j
-                    axs[i, j].plot(ref_traj[index], "b")
+                    axs[i, j].plot(ref_traj_fancy_gym[index], "b")
+                    # axs[i, j].plot(ref_traj_orbit[index], "y")
                     axs[i, j].plot(orbit_joint_obs[index], "r")
                     axs[i, j].plot(fancy_gym_joint_obs[index], "g")
                     # axs[i, j].hlines(y=orbit_joint_pos_limit[index], xmin=0, xmax=101, color='y')
-        mse.append(np.square(np.array(ref_traj) - np.array(orbit_joint_obs)).mean(axis=1))
-    print("MSE orbit: ", np.array(mse).mean(axis=0))
+        # mse.append(np.square(np.array(ref_traj) - np.array(orbit_joint_obs)).mean(axis=1))
+    # print("MSE orbit: ", np.array(mse).mean(axis=0))
     if rewards:
         axs[1, 3].plot(rewards)
-    plt.show()
+    # plt.show()
+    tikzplotlib.get_tikz_code(figure=fig)
+    tikzplotlib.save("/home/johann/test.tex")
 
 
 if __name__ == "__main__":

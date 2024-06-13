@@ -19,6 +19,7 @@ from omni.isaac.orbit.managers import EventTermCfg as EventTerm
 from omni.isaac.orbit.managers import ObservationGroupCfg as ObsGroup
 from omni.isaac.orbit.managers import ObservationTermCfg as ObsTerm
 from omni.isaac.orbit.managers import RewardTermCfg as RewTerm
+from omni.isaac.orbit.managers import SceneEntityCfg
 from omni.isaac.orbit.managers import TerminationTermCfg as DoneTerm
 from omni.isaac.orbit.scene import InteractiveSceneCfg
 from omni.isaac.orbit.sensors.frame_transformer.frame_transformer_cfg import FrameTransformerCfg
@@ -27,6 +28,7 @@ from omni.isaac.orbit.utils import configclass
 from omni.isaac.orbit.utils.assets import ISAAC_NUCLEUS_DIR
 
 from omni.isaac.contrib_tasks.boxPushing.mdp.commands.pose_command_min_dist_cfg import UniformPoseWithMinDistCommandCfg
+from omni.isaac.contrib_tasks.boxPushing.mdp.events import reset_box_root_state_uniform_with_robot_IK
 
 from . import mdp
 
@@ -137,15 +139,14 @@ class EventCfg:
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
-    # reset_object_position = EventTerm(
-    #     func=mdp.reset_root_state_uniform,
-    #     mode="reset",
-    #     params={
-    #         "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
-    #         "velocity_range": {},
-    #         "asset_cfg": SceneEntityCfg("object", body_names="Object"),
-    #     },
-    # )
+    reset_object_position = EventTerm(
+        func=reset_box_root_state_uniform_with_robot_IK,
+        mode="reset",
+        params={
+            "pose_range": {"x": (-0.1, 0.1), "y": (-0.25, 0.25), "z": (0.0, 0.0)},
+            "asset_cfg": SceneEntityCfg("object", body_names="Object"),
+        },
+    )
 
 
 @configclass

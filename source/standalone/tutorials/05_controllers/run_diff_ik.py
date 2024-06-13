@@ -55,7 +55,8 @@ from omni.isaac.orbit.utils.math import subtract_frame_transforms
 ##
 # Pre-defined configs
 ##
-from omni.isaac.orbit_assets import FRANKA_PANDA_HIGH_PD_CFG, UR10_CFG  # isort:skip
+# from omni.isaac.orbit_assets import FRANKA_PANDA_HIGH_PD_CFG, UR10_CFG  # isort:skip
+from omni.isaac.contrib_tasks.boxPushing.assets.franka import FRANKA_PANDA_CFG, FRANKA_PANDA_HIGH_PD_CFG  # isort: skip
 
 
 @configclass
@@ -162,6 +163,9 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
         else:
             # obtain quantities from simulation
             jacobian = robot.root_physx_view.get_jacobians()[:, ee_jacobi_idx, :, robot_entity_cfg.joint_ids]
+            print(jacobian)
+            torch.save(jacobian, "/home/johann/Downloads/jacobian.pt")
+            return
             ee_pose_w = robot.data.body_state_w[:, robot_entity_cfg.body_ids[0], 0:7]
             root_pose_w = robot.data.root_state_w[:, 0:7]
             joint_pos = robot.data.joint_pos[:, robot_entity_cfg.joint_ids]

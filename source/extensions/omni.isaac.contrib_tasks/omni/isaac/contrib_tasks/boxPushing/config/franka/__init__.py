@@ -19,19 +19,19 @@ from . import agents, joint_pos_env_cfg
 ##
 
 # Dense reward
-for reward_type in ["Dense", "TemporalSparse"]: #TODO add TemporalSpatialSparse
+for reward_type in ["Dense", "TemporalSparse"]:  # TODO add TemporalSpatialSparse
     for rsl_rl_cfg_name in ["Step_RL_Orbit_HP", "BBRL_Orbit_HP", "Step_RL_Fancy_Gym_HP", "BBRL_Fancy_Gym_HP"]:
         gym.register(
-            id="Isaac-Box-Pushing-{reward}-{agent_cfg}-Franka-v0".format(reward=reward_type, agent_cfg=rsl_rl_cfg_name),
-            entry_point="omni.isaac.orbit.envs:RLTaskEnv",
+            id=f"Isaac-Box-Pushing-{reward_type}-{rsl_rl_cfg_name}-Franka-v0",
+            entry_point="omni.isaac.contrib_tasks.boxPushing.box_pushing_env:BoxPushingEnv",
             kwargs={
-                "env_cfg_entry_point": getattr(joint_pos_env_cfg, "FrankaBoxPushingEnvCfg_{}".format(reward_type)),
-                "rsl_rl_cfg_entry_point": getattr(agents.rsl_rl_cfg, "BoxPushingPPORunnerCfg_{}".format(rsl_rl_cfg_name)),
+                "env_cfg_entry_point": getattr(joint_pos_env_cfg, f"FrankaBoxPushingEnvCfg_{reward_type}"),
+                "rsl_rl_cfg_entry_point": getattr(agents.rsl_rl_cfg, f"BoxPushingPPORunnerCfg_{rsl_rl_cfg_name}"),
             },
             disable_env_checker=True,
         )
 
     fancy_gym_registry.upgrade(
-        id="Isaac-Box-Pushing-{reward}-{agent_cfg}-Franka-v0".format(reward=reward_type, agent_cfg=rsl_rl_cfg_name),
+        id=f"Isaac-Box-Pushing-{reward_type}-{rsl_rl_cfg_name}-Franka-v0",
         mp_wrapper=joint_pos_env_cfg.FrankaBoxPushingMPWrapper,
     )

@@ -11,6 +11,7 @@ from omni.isaac.orbit_tasks.utils.wrappers.rsl_rl import (
     RslRlPpoAlgorithmCfg,
 )
 
+
 @configclass
 class BoxPushingPPORunnerCfg_Step_RL_Orbit_HP(RslRlOnPolicyRunnerCfg):
     seed = -1

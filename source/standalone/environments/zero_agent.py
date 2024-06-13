@@ -7,6 +7,8 @@
 
 from __future__ import annotations
 
+from omni.isaac.orbit.controllers import DifferentialIKController, DifferentialIKControllerCfg
+
 """Launch Isaac Sim Simulator first."""
 
 
@@ -50,6 +52,9 @@ import omni.isaac.contrib_tasks  # noqa: F401
 import omni.isaac.orbit_tasks  # noqa: F401
 from omni.isaac.orbit_tasks.utils import parse_env_cfg
 
+from omni.isaac.orbit.markers.config import FRAME_MARKER_CFG  # isort: skip
+from omni.isaac.orbit.markers import VisualizationMarkers  # isort: skip
+
 
 def main():
     """Zero actions agent with Orbit environment."""
@@ -68,6 +73,12 @@ def main():
     print(f"[INFO]: Gym action space: {env.action_space}")
     # reset environment
     env.reset()
+
+    target_pose_vis_frame = FRAME_MARKER_CFG.copy()
+    target_pose_vis_frame.markers["frame"].scale = (0.1, 0.1, 0.1)
+    target_pose_vis_frame.prim_path = "/Visuals/FrameTransformerEEFPose"
+    marker = VisualizationMarkers(target_pose_vis_frame)
+
     # simulate environment
     while simulation_app.is_running():
         # run everything in inference mode
@@ -78,6 +89,12 @@ def main():
                 actions = torch.zeros((args_cli.num_envs, env.action_space.shape[0]), device=env.unwrapped.device)
             # apply actions
             env.step(actions)
+            marker.visualize(
+                translations=torch.cat((env.unwrapped.EEF_target_poses[:, :3], env.unwrapped.EEF_poses[:, :3]), 0),
+                orientations=torch.cat((env.unwrapped.EEF_target_poses[:, 3:7], env.unwrapped.EEF_poses[:, 3:7]), 0),
+                # translations=env.unwrapped.EEF_poses[:, :3],
+                # orientations=env.unwrapped.EEF_poses[:, 3:7],
+            )
 
     # close the simulator
     env.close()

@@ -14,7 +14,11 @@ from omni.isaac.orbit.sim.schemas.schemas_cfg import RigidBodyPropertiesCfg
 from omni.isaac.orbit.sim.spawners.from_files.from_files_cfg import UsdFileCfg
 from omni.isaac.orbit.utils import configclass
 
-from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import BoxPushingEnvCfg, DenseRewardCfg, TemporalSparseRewardCfg
+from omni.isaac.contrib_tasks.boxPushing.box_pushing_env_cfg import (
+    BoxPushingEnvCfg,
+    DenseRewardCfg,
+    TemporalSparseRewardCfg,
+)
 from omni.isaac.contrib_tasks.boxPushing.config.franka import orbit_black_box_wrapper
 from omni.isaac.orbit_tasks.manipulation.lift import mdp
 
@@ -47,7 +51,7 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
         self.scene.object = RigidObjectCfg(
             prim_path="{ENV_REGEX_NS}/Object",
             init_state=RigidObjectCfg.InitialStateCfg(
-                pos=[0.5, 0.0, 0.055],
+                pos=[0.41, 0.0, 0.055],
                 rot=[1, 0, 0, 0],
             ),
             spawn=UsdFileCfg(
@@ -83,6 +87,7 @@ class FrankaBoxPushingEnvCfg(BoxPushingEnvCfg):
             ],
         )
 
+
 @configclass
 class FrankaBoxPushingEnvCfg_Dense(FrankaBoxPushingEnvCfg):
     def __post_init__(self):
@@ -99,6 +104,7 @@ class FrankaBoxPushingEnvCfg_TemporalSparse(FrankaBoxPushingEnvCfg):
         super().__post_init__()
 
         self.rewards = TemporalSparseRewardCfg()
+
 
 @configclass
 class FrankaBoxPushingEnvCfg_PLAY(FrankaBoxPushingEnvCfg):
